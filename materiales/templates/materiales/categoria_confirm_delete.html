@@ -1,0 +1,25 @@
+<!-- materiales/templates/materiales/categoria_confirm_delete.html -->
+{% extends 'materiales/base_materiales.html' %}
+
+{% block title %}Eliminar Categoría{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header bg-danger text-white">
+                <h5>Confirmar Eliminación</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Estás seguro de que deseas eliminar la categoría <strong>{{ object.nombre }}</strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer. Si hay materiales asociados, no podrás eliminarla.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <a href="{% url 'materiales:categoria_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

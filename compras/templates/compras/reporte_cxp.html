@@ -1,0 +1,95 @@
+<!-- compras/templates/compras/reporte_cxp.html -->
+{% extends 'compras/base_compras.html' %}
+{% load humanize %}
+
+{% block title %}Reporte de Cuentas por Pagar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Reporte de Cuentas por Pagar</h2>
+    <a href="{% url 'compras:reporte_cxp' %}" class="btn btn-outline-secondary">Limpiar Filtros</a>
+</div>
+
+<form method="get" class="mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="proveedor" class="form-label">Proveedor</label>
+            <select name="proveedor" id="proveedor" class="form-select">
+                <option value="todos">Todos los proveedores</option>
+                {% for prov in proveedores %}
+                <option value="{{ prov.id }}" {% if proveedor_seleccionado == prov.id|stringformat:"i" %}selected{% endif %}>
+                    {{ prov.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+{% if cxps %}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th>Proveedor</th>
+                <th>Factura/Referencia</th>
+                <th>Fecha Emisión</th>
+                <th>Fecha Vencimiento</th>
+                <th>Días Vencidos</th>  <!-- Nueva columna -->
+                <th>Importe</th>
+                <th>Saldo Pendiente</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cxp in cxps %}
+            <tr class="{% if cxp.saldo_pendiente > 0 and cxp.fecha_vencimiento < today %}table-danger{% elif cxp.saldo_pendiente > 0 %}table-warning{% else %}table-success{% endif %}">
+                <td>{{ cxp.proveedor.nombre }}</td>
+                <td>
+                    <a href="{% url 'compras:detalle_cxp' cxp.id %}" class="text-decoration-none">
+                        {{ cxp.referencia }}
+                    </a>
+                </td>
+                <td>{{ cxp.fecha_emision|date:"d/m/Y" }}</td>
+                <td>{{ cxp.fecha_vencimiento|date:"d/m/Y" }}</td>
+                <td>
+                    {% if cxp.dias_vencidos > 0 %}
+                        <span class="badge bg-danger">{{ cxp.dias_vencidos }}</span>
+                    {% else %}
+                        <span class="text-muted">0</span>
+                    {% endif %}
+                </td>
+                <td>${{ cxp.monto_total|floatformat:2|intcomma }}</td>
+                <td>
+                    <span class="text-{% if cxp.saldo_pendiente <= 0 %}success{% else %}danger{% endif %}">
+                        ${{ cxp.saldo_pendiente|floatformat:2|intcomma }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-{% if cxp.estado == 'pagado' %}success{% else %}warning{% endif %}">
+                        {{ cxp.get_estado_display }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+            <tr>
+                <th colspan="5" class="text-end">TOTALES:</th>
+                <th>${{ total_importe|floatformat:2|intcomma }}</th>
+                <th>${{ total_saldo|floatformat:2|intcomma }}</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    No hay cuentas por pagar que coincidan con los filtros.
+</div>
+{% endif %}
+
+{% endblock %}

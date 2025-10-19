@@ -1,0 +1,94 @@
+<!-- materiales/templates/materiales/material_form.html -->
+{% extends 'materiales/base_materiales.html' %}
+
+{% block title %}{% if object %}Editar Material{% else %}Nuevo Material{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4>{% if object %}Editar Material{% else %}Registrar Nuevo Material{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.codigo.label_tag }}
+                            {{ form.codigo }}
+                            {% if form.codigo.errors %}<div class="text-danger">{{ form.codigo.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.nombre.label_tag }}
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}<div class="text-danger">{{ form.nombre.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.categoria.label_tag }}
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}<div class="text-danger">{{ form.categoria.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.unidad_medida.label_tag }}
+                            {{ form.unidad_medida }}
+                            {% if form.unidad_medida.errors %}<div class="text-danger">{{ form.unidad_medida.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.precio_unitario.label_tag }}
+                            {{ form.precio_unitario }}
+                            {% if form.precio_unitario.errors %}<div class="text-danger">{{ form.precio_unitario.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.es_inventariable.label_tag }}
+                            {{ form.es_inventariable }}
+                            {% if form.es_inventariable.errors %}<div class="text-danger">{{ form.es_inventariable.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3 inventariable-field">
+                            {{ form.stock_actual.label_tag }}
+                            {{ form.stock_actual }}
+                            {% if form.stock_actual.errors %}<div class="text-danger">{{ form.stock_actual.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3 inventariable-field">
+                            {{ form.stock_minimo.label_tag }}
+                            {{ form.stock_minimo }}
+                            {% if form.stock_minimo.errors %}<div class="text-danger">{{ form.stock_minimo.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}<div class="text-danger">{{ form.descripcion.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.activo.label_tag }}
+                            {{ form.activo }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{% url 'materiales:material_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const esInventariable = document.getElementById('{{ form.es_inventariable.id_for_label }}');
+    const stockFields = document.querySelectorAll('.inventariable-field');
+
+    function toggleStockFields() {
+        const isVisible = esInventariable.checked;
+        stockFields.forEach(field => {
+            field.style.display = isVisible ? 'block' : 'none';
+        });
+    }
+
+    if (esInventariable) {
+        toggleStockFields();
+        esInventariable.addEventListener('change', toggleStockFields);
+    }
+});
+</script>
+
+{% endblock %}

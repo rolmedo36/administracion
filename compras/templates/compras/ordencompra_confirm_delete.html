@@ -1,0 +1,24 @@
+<!-- compras/templates/compras/ordencompra_confirm_delete.html -->
+{% extends 'compras/base_compras.html' %}
+
+{% block title %}Eliminar Orden de Compra{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header bg-danger text-white">
+                <h5>Confirmar Eliminación</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Eliminar la orden <strong>{{ object.numero }}</strong>?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <a href="{% url 'compras:ordencompra_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

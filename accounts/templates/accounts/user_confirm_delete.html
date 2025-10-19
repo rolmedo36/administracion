@@ -1,0 +1,20 @@
+<!-- accounts/templates/accounts/user_confirm_delete.html -->
+{% extends 'core/dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card text-center" style="max-width: 500px; margin: auto;">
+        <div class="card-header bg-danger text-white">
+            Confirmar Eliminación
+        </div>
+        <div class="card-body">
+            <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ object.username }}</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

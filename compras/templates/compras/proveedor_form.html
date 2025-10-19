@@ -1,0 +1,49 @@
+<!-- compras/templates/compras/proveedor_form.html -->
+{% extends 'compras/base_compras.html' %}
+
+{% block title %}{% if object %}Editar Proveedor{% else %}Nuevo Proveedor{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4>{% if object %}Editar Proveedor{% else %}Registrar Nuevo Proveedor{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.nombre.label_tag }}
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}<div class="text-danger">{{ form.nombre.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.identificacion.label_tag }}
+                        {{ form.identificacion }}
+                        {% if form.identificacion.errors %}<div class="text-danger">{{ form.identificacion.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.telefono.label_tag }}
+                        {{ form.telefono }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.direccion.label_tag }}
+                        {{ form.direccion }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.activo }}
+                        {{ form.activo.label_tag }}
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <a href="{% url 'compras:proveedor_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

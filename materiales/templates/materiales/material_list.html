@@ -1,0 +1,105 @@
+<!-- materiales/templates/materiales/material_list.html -->
+{% extends 'materiales/base_materiales.html' %}
+
+{% block title %}Materiales{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Materiales</h2>
+    <a href="{% url 'materiales:material_create' %}" class="btn btn-success">+ Nuevo Material</a>
+</div>
+
+<!-- Filtros -->
+<form method="get" class="row mb-4">
+    <div class="col-md-3">
+        <select name="categoria" class="form-select">
+            <option value="">Todas las categorías</option>
+            {% for cat in categorias %}
+                <option value="{{ cat.id }}" {% if request.GET.categoria == cat.id|stringformat:"i" %}selected{% endif %}>
+                    {{ cat.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="activo" class="form-select">
+            <option value="">Todos</option>
+            <option value="1" {% if request.GET.activo == "1" %}selected{% endif %}>Activos</option>
+            <option value="0" {% if request.GET.activo == "0" %}selected{% endif %}>Inactivos</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        <a href="{% url 'materiales:material_list' %}" class="btn btn-outline-secondary">Limpiar</a>
+    </div>
+</form>
+
+<!-- Tabla -->
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Tipo</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mat in materiales %}
+            <tr class="{% if mat.stock_bajo %}table-warning{% endif %}">
+                <td>{{ mat.codigo }}</td>
+                <td>{{ mat.nombre }}</td>
+                <td>{{ mat.categoria.nombre }}</td>
+                <td>
+                    <span class="badge bg-{% if mat.es_inventariable %}info{% else %}secondary{% endif %}">
+                        {{ mat.tipo_display }}
+                    </span>
+                </td>
+                <td>${{ mat.precio_unitario }}</td>
+                <td>
+                    {% if mat.es_inventariable %}
+                        {{ mat.stock_actual }} {% if mat.stock_bajo %}⚠️{% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if mat.activo %}✅{% else %}❌{% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'materiales:material_update' mat.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'materiales:material_delete' mat.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center">No hay materiales registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Primero</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Anterior</a></li>
+        {% endif %}
+
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Siguiente</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}">Último</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

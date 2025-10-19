@@ -1,0 +1,40 @@
+<!-- compras/templates/compras/pago_cxp_form.html -->
+{% extends 'compras/base_compras.html' %}
+{% load humanize %}
+
+{% block title %}Registrar Pago - CXP {{ cxp.referencia }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5>Registrar Pago</h5>
+                <p class="mb-0">CXP: {{ cxp.referencia }} | Saldo: ${{ cxp.saldo_pendiente|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.monto.label_tag }}
+                        {{ form.monto }}
+                        {% if form.monto.errors %}<div class="text-danger">{{ form.monto.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.fecha_pago.label_tag }}
+                        {{ form.fecha_pago }}
+                        {% if form.fecha_pago.errors %}<div class="text-danger">{{ form.fecha_pago.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.referencia.label_tag }}
+                        {{ form.referencia }}
+                        {% if form.referencia.errors %}<div class="text-danger">{{ form.referencia.errors }}</div>{% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar Pago</button>
+                    <a href="{% url 'compras:detalle_cxp' cxp.id %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

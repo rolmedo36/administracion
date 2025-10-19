@@ -1,0 +1,120 @@
+<!-- compras/templates/compras/ordencompra_detail.html -->
+{% extends 'compras/base_compras.html' %}
+{% load humanize %}
+
+{% block title %}Orden de Compra {{ orden.numero }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Orden de Compra <span class="text-primary">{{ orden.numero }}</span></h2>
+    <a href="{% url 'compras:ordencompra_list' %}" class="btn btn-secondary">Volver a lista</a>
+</div>
+
+<!-- Acción de recepción (si aplica) -->
+{% if orden.estado == 'confirmada' and perms.compras.change_ordencompra %}
+<div class="mb-4">
+    <a href="{% url 'compras:recepcion_orden' orden.pk %}" class="btn btn-success">
+        ✅ Recibir Orden
+    </a>
+</div>
+{% endif %}
+
+<!-- Cabecera -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Información General</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Proveedor:</strong><br> {{ orden.proveedor }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Fecha:</strong><br> {{ orden.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Estado:</strong><br>
+                    <span class="badge bg-{{ orden.get_estado_badge_class }}">
+                        {{ orden.get_estado_display }}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Creado por:</strong><br> {{ orden.creado_por.username }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Total:</strong><br> <strong>${{ orden.total|floatformat:2|intcomma }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalle -->
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Detalle de la Orden</h5>
+    </div>
+    <div class="card-body">
+        {% if orden.detalles.exists %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Material</th>
+                        <th>Unidad</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in orden.detalles.all %}
+                    <tr>
+                        <td>{{ detalle.material }}</td>
+                        <td>{{ detalle.material.get_unidad_medida_display }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>${{ detalle.precio_unitario|floatformat:2|intcomma }}</td>
+                        <td>${{ detalle.subtotal|floatformat:2|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" class="text-end">Total:</th>
+                        <th>${{ orden.total|floatformat:2|intcomma }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">Esta orden no tiene detalles.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Cuenta por Pagar (si existe) -->
+{% if orden.cuenta_por_pagar %}
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Cuenta por Pagar</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Factura/Referencia:</strong> {{ orden.cuenta_por_pagar.referencia }}</p>
+        <p><strong>Monto Total:</strong> ${{ orden.cuenta_por_pagar.monto_total|floatformat:2|intcomma }}</p>
+        <p><strong>Saldo Pendiente:</strong>
+            <span class="text-{% if orden.cuenta_por_pagar.saldo_pendiente <= 0 %}success{% else %}danger{% endif %}">
+                ${{ orden.cuenta_por_pagar.saldo_pendiente|floatformat:2|intcomma }}
+            </span>
+        </p>
+        <p><strong>Fecha de Vencimiento:</strong> {{ orden.cuenta_por_pagar.fecha_vencimiento|date:"d/m/Y" }}</p>
+        <p><strong>Estado CXP:</strong>
+            <span class="badge bg-{% if orden.cuenta_por_pagar.estado == 'pagado' %}success{% else %}warning{% endif %}">
+                {{ orden.cuenta_por_pagar.get_estado_display }}
+            </span>
+        </p>
+        <a href="{% url 'compras:detalle_cxp' orden.cuenta_por_pagar.id %}" class="btn btn-sm btn-info">Ver Detalle de CXP</a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

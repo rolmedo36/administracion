@@ -1,0 +1,24 @@
+<!-- accounts/templates/accounts/user_form.html -->
+{% extends 'core/dashboard.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>{% if object %}Editar Usuario{% else %}Crear Usuario{% endif %}</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            {% for field in form %}
+            <div class="col-md-6 mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

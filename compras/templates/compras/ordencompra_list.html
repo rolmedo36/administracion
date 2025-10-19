@@ -1,0 +1,66 @@
+<!-- compras/templates/compras/ordencompra_list.html -->
+{% extends 'compras/base_compras.html' %}
+{% load humanize %}
+
+{% block title %}Órdenes de Compra{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        {% if modo_recepcion %}
+            Órdenes Pendientes de Recepción
+        {% else %}
+            Órdenes de Compra
+        {% endif %}
+    </h2>
+    {% if not modo_recepcion %}
+        <a href="{% url 'compras:ordencompra_create' %}" class="btn btn-success">+ Nueva Orden</a>
+    {% endif %}
+</div>
+
+{% if ordenes %}
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">
+        <thead class="table-success">
+            <tr>
+                <th>Número</th>
+                <th>Proveedor</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for oc in ordenes %}
+            <tr>
+                <td>{{ oc.numero }}</td>
+                <td>{{ oc.proveedor.nombre }}</td>
+                <td>{{ oc.fecha_creacion|date:"d/m/Y" }}</td>
+                <td>
+                    <span class="badge bg-{{ oc.get_estado_badge_class }}">
+                        {{ oc.get_estado_display }}
+                    </span>
+                </td>
+                <td>${{ oc.total|floatformat:2|intcomma }}</td>
+                <td>
+                    <a href="{% url 'compras:ordencompra_detail' oc.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    {% if oc.estado == 'confirmada' and perms.compras.change_ordencompra %}
+                        <a href="{% url 'compras:recepcion_orden' oc.pk %}" class="btn btn-sm btn-success">Recibir</a>
+                    {% endif %}
+                    {% if perms.compras.change_ordencompra %}
+                        <a href="{% url 'compras:ordencompra_update' oc.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    {% endif %}
+                    {% if perms.compras.delete_ordencompra %}
+                        <a href="{% url 'compras:ordencompra_delete' oc.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay órdenes de compra.</div>
+{% endif %}
+{% endblock %}
