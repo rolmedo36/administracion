@@ -61,3 +61,32 @@ class Material(models.Model):
     @property
     def stock_bajo(self):
         return self.es_inventariable and self.stock_actual < self.stock_minimo
+
+# ALMACENES
+
+class Almacen(models.Model):
+    codigo = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Almacén"
+        verbose_name_plural = "Almacenes"
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"
+
+class StockAlmacen(models.Model):
+    material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='stocks')
+    almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE, related_name='stocks')
+    cantidad = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        unique_together = ('material', 'almacen')
+        verbose_name = "Stock por Almacén"
+        verbose_name_plural = "Stocks por Almacén"
+
+    def __str__(self):
+        return f"{self.material} en {self.almacen}: {self.cantidad}"

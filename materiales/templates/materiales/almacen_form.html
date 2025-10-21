@@ -1,0 +1,39 @@
+<!-- materiales/templates/materiales/almacen_form.html -->
+{% extends 'materiales/base_materiales.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>{% if object %}Editar Almacén{% else %}Nuevo Almacén{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.codigo.label_tag }}
+                        {{ form.codigo }}
+                        {% if form.codigo.errors %}<div class="text-danger">{{ form.codigo.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.nombre.label_tag }}
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}<div class="text-danger">{{ form.nombre.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.descripcion.label_tag }}
+                        {{ form.descripcion }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.activo }}
+                        {{ form.activo.label_tag }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{% url 'materiales:almacen_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

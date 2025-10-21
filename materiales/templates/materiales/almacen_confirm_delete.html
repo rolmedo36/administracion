@@ -1,0 +1,22 @@
+<!-- materiales/templates/materiales/almacen_confirm_delete.html -->
+{% extends 'materiales/base_materiales.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header bg-danger text-white">
+                <h5>Confirmar Eliminación</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Eliminar el almacén <strong>{{ object.nombre }}</strong>?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <a href="{% url 'materiales:almacen_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

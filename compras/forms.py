@@ -2,6 +2,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 from .models import Proveedor, OrdenCompra, DetalleOrdenCompra, CuentaPorPagar, PagoCuentaPorPagar
+from materiales.models import Almacen
 
 class ProveedorForm(forms.ModelForm):
     class Meta:
@@ -105,6 +106,12 @@ class RecepcionOrdenForm(forms.Form):
     fecha_vencimiento = forms.DateField(
         label="Fecha de Vencimiento",
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    almacen = forms.ModelChoiceField(
+        queryset=Almacen.objects.filter(activo=True),
+        label="Almacén de Recepción",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="Seleccione un almacén"
     )
 
 # CXP

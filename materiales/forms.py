@@ -1,6 +1,6 @@
 # materiales/forms.py
 from django import forms
-from .models import Material, CategoriaMaterial
+from .models import Material, CategoriaMaterial, Almacen
 
 class MaterialForm(forms.ModelForm):
     class Meta:
@@ -50,3 +50,13 @@ class CategoriaMaterialForm(forms.ModelForm):
         if CategoriaMaterial.objects.filter(nombre__iexact=nombre).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("Ya existe una categoría con este nombre.")
         return nombre
+
+# Almacenes
+class AlmacenForm(forms.ModelForm):
+    class Meta:
+        model = Almacen
+        fields = ['codigo', 'nombre', 'descripcion', 'activo']
+        widgets = {
+            'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'activo': forms.CheckboxInput(),
+        }

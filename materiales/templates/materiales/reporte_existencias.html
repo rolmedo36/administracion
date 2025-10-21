@@ -1,0 +1,86 @@
+<!-- materiales/templates/materiales/reporte_existencias.html -->
+{% extends 'materiales/base_materiales.html' %}
+{% load humanize %}
+
+{% block title %}Reporte de Existencias por Almacén{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Reporte de Existencias por Almacén</h2>
+    <a href="{% url 'materiales:reporte_existencias' %}" class="btn btn-outline-secondary">Limpiar Filtros</a>
+</div>
+
+<!-- Filtros -->
+<form method="get" class="mb-4">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label for="almacen" class="form-label">Almacén</label>
+            <select name="almacen" id="almacen" class="form-select">
+                <option value="">Todos los almacenes</option>
+                {% for alm in almacenes %}
+                <option value="{{ alm.id }}" {% if almacen_seleccionado == alm.id|stringformat:"i" %}selected{% endif %}>
+                    {{ alm.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="material" class="form-label">Material (código o nombre)</label>
+            <input type="text" name="material" id="material" class="form-control"
+                   value="{{ material_query|default:'' }}" placeholder="Buscar material...">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+<!-- Resultados -->
+{% if resultados %}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>Código</th>
+                <th>Material</th>
+                <th>Almacén</th>
+                <th class="text-end">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in resultados %}
+            <tr>
+                <td>{{ item.material.codigo }}</td>
+                <td>{{ item.material.nombre }}</td>
+                <td>{{ item.almacen.nombre }}</td>
+                <td class="text-end">
+                    {% if item.cantidad > 0 %}
+                        {{ item.cantidad|floatformat:2|intcomma }}
+                    {% else %}
+                        <span class="text-muted">0.00</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% if total_cantidad is not None %}
+        <tfoot class="table-light">
+            <tr>
+                <th colspan="3" class="text-end">TOTAL:</th>
+                <th class="text-end">{{ total_cantidad|floatformat:2|intcomma }}</th>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    {% if almacen_seleccionado %}
+        No hay materiales inventariables registrados.
+    {% else %}
+        No hay existencias que coincidan con los filtros.
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
