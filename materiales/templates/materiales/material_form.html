@@ -63,6 +63,11 @@
                             {{ form.activo.label_tag }}
                             {{ form.activo }}
                         </div>
+                        <div class="col-12 mb-3">
+                            {{ form.aplica_iva }}
+                            {{ form.aplica_iva.label_tag }}
+                        </div>
+
                     </div>
                     <button type="submit" class="btn btn-primary">Guardar</button>
                     <a href="{% url 'materiales:material_list' %}" class="btn btn-secondary">Cancelar</a>

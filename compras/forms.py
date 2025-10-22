@@ -58,7 +58,7 @@ class DetalleOrdenCompraForm(forms.ModelForm):
     """
     class Meta:
         model = DetalleOrdenCompra
-        fields = ['material', 'cantidad', 'precio_unitario']
+        fields = ['material', 'cantidad', 'precio_unitario', 'aplica_iva', 'precio_con_iva']
         widgets = {
             'material': forms.Select(attrs={'class': 'form-control d-none'}),  # oculto, pero necesario
             'cantidad': forms.NumberInput(attrs={
@@ -71,6 +71,7 @@ class DetalleOrdenCompraForm(forms.ModelForm):
                 'step': '0.01',
                 'min': '0.01'
             }),
+            'aplica_iva': forms.HiddenInput(),
         }
 
     def clean_cantidad(self):
@@ -85,6 +86,14 @@ class DetalleOrdenCompraForm(forms.ModelForm):
             raise forms.ValidationError("El precio unitario debe ser mayor a cero.")
         return precio
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hacer que precio_con_iva no sea requerido en el formulario
+        self.fields['precio_con_iva'].required = False
+
+    def clean_precio_con_iva(self):
+        # El valor se calculará en el modelo, no en el formulario
+        return self.cleaned_data.get('precio_con_iva') or 0
 
 # Formset para los detalles de la orden
 DetalleOrdenFormSet = inlineformset_factory(

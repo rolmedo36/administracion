@@ -45,6 +45,7 @@ class Material(models.Model):
     activo = models.BooleanField(default=True)
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    aplica_iva = models.BooleanField(default=False, verbose_name="¿Aplica IVA?")
 
     class Meta:
         verbose_name = "Material"

@@ -63,7 +63,7 @@
                         <th>Material</th>
                         <th>Unidad</th>
                         <th>Cantidad</th>
-                        <th>Precio Unitario</th>
+                        <th>Precio</th>
                         <th>Subtotal</th>
                     </tr>
                 </thead>
@@ -73,7 +73,13 @@
                         <td>{{ detalle.material }}</td>
                         <td>{{ detalle.material.get_unidad_medida_display }}</td>
                         <td>{{ detalle.cantidad }}</td>
-                        <td>${{ detalle.precio_unitario|floatformat:2|intcomma }}</td>
+                        <td>
+                            Base: ${{ detalle.precio_unitario|floatformat:2|intcomma }}<br>
+                            {% if detalle.aplica_iva %}
+                                <small class="text-success">+16% IVA</small><br>
+                                Total: ${{ detalle.precio_con_iva|floatformat:2|intcomma }}
+                            {% endif %}
+                        </td>
                         <td>${{ detalle.subtotal|floatformat:2|intcomma }}</td>
                     </tr>
                     {% endfor %}

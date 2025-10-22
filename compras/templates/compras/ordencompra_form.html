@@ -259,12 +259,13 @@
             {{ empty_form.cantidad }}
         </div>
         <div class="col-md-2">
-            {{ empty_form.precio_unitario.label_tag }}
-            {{ empty_form.precio_unitario }}
+            {{ form.precio_unitario.label_tag }}<br>
+            <small class="text-muted">Base</small>
+            {{ form.precio_unitario }}
         </div>
         <div class="col-md-2">
-            {{ empty_form.subtotal.label_tag }}
-            {{ empty_form.subtotal }}
+            <label class="form-label">Precio con IVA</label><br>
+            {{ form.precio_con_iva }}
         </div>
         <div class="col-md-2 d-flex align-items-end">
             <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
@@ -273,6 +274,10 @@
 </div>
 
 {% endblock %}
+
+<script>
+    window.materialesData = {{ materiales_data_json|safe }};
+</script>
 
 {% block extra_js %}
 <script src="{% static 'compras/js/ordencompra_form.js' %}"></script>

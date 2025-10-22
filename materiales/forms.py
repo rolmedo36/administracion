@@ -8,13 +8,14 @@ class MaterialForm(forms.ModelForm):
         fields = [
             'codigo', 'nombre', 'descripcion', 'categoria',
             'unidad_medida', 'precio_unitario', 'es_inventariable',
-            'stock_actual', 'stock_minimo', 'activo'
+            'stock_actual', 'stock_minimo', 'activo', 'aplica_iva'
         ]
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 3}),
             'precio_unitario': forms.NumberInput(attrs={'step': '0.01'}),
             'stock_actual': forms.NumberInput(attrs={'step': '0.01'}),
             'stock_minimo': forms.NumberInput(attrs={'step': '0.01'}),
+            'aplica_iva': forms.CheckboxInput(),
         }
 
     def __init__(self, *args, **kwargs):

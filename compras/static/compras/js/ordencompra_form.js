@@ -3,6 +3,37 @@ document.addEventListener('DOMContentLoaded', function () {
     let formCount = parseInt(document.getElementById('id_detalles-TOTAL_FORMS').value);
     const emptyFormContainer = document.getElementById('empty-form');
     let currentDetalleIndex = null;
+    const materialesData = window.materialesData || {};
+
+    // =============== FUNCIONES DE CÁLCULO ===============
+    function calcularPrecios(row) {
+        const precioBaseInput = row.querySelector('.precio-base');
+        const precioIvaInput = row.querySelector('.precio-con-iva');
+        const aplicaIvaInput = row.querySelector('input[name$="aplica_iva"]');
+
+        if (!precioBaseInput || !precioIvaInput || !aplicaIvaInput) return;
+
+        const precioBase = parseFloat(precioBaseInput.value) || 0;
+        const aplicaIva = aplicaIvaInput.value === 'true';
+        const precioConIva = aplicaIva ? precioBase * 1.16 : precioBase;
+
+        precioIvaInput.value = precioConIva.toFixed(2);
+        calcularSubtotal(row);
+    }
+
+    function calcularSubtotal(row) {
+        const cantidadInput = row.querySelector('input[name$="cantidad"]');
+        const precioIvaInput = row.querySelector('.precio-con-iva');
+        const subtotalInput = row.querySelector('input[name$="subtotal"]');
+
+        if (!cantidadInput || !precioIvaInput || !subtotalInput) return;
+
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        const precioIva = parseFloat(precioIvaInput.value) || 0;
+        const subtotal = cantidad * precioIva;
+
+        subtotalInput.value = subtotal.toFixed(2);
+    }
 
     // =============== FUNCIONES AUXILIARES ===============
     function updateManagementForm() {
@@ -15,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Clonar y reemplazar __prefix__ por el índice actual
         const newHtml = emptyFormContainer.innerHTML.replace(/__prefix__/g, formCount);
         const newRow = document.createElement('div');
         newRow.className = 'detalle-row border p-3 mb-3 rounded';
@@ -35,35 +65,50 @@ document.addEventListener('DOMContentLoaded', function () {
         const searchBtn = newRow.querySelector('[data-bs-toggle="modal"]');
         if (searchBtn) {
             searchBtn.addEventListener('click', function () {
-                // Encontrar el índice de esta fila
                 const allRows = Array.from(document.querySelectorAll('.detalle-row'));
                 currentDetalleIndex = allRows.indexOf(newRow);
             });
         }
 
-        // Limpiar campos de la nueva fila
+        // Limpiar campos
         newRow.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
             if (!input.hasAttribute('readonly')) {
                 input.value = '';
             }
         });
+        const precioConIvaInput = newRow.querySelector('.precio-con-iva');
+        if (precioConIvaInput) precioConIvaInput.value = '0.00';
         const materialSelect = newRow.querySelector('select[name$="material"]');
         if (materialSelect) materialSelect.value = '';
+        const aplicaIvaInput = newRow.querySelector('input[name$="aplica_iva"]');
+        if (aplicaIvaInput) aplicaIvaInput.value = 'false';
 
-        // Agregar al DOM
+        // Configurar eventos de cálculo
+        const precioBaseInput = newRow.querySelector('.precio-base');
+        if (precioBaseInput) {
+            precioBaseInput.addEventListener('input', function() {
+                calcularPrecios(newRow);
+            });
+        }
+        const cantidadInput = newRow.querySelector('input[name$="cantidad"]');
+        if (cantidadInput) {
+            cantidadInput.addEventListener('input', function() {
+                calcularSubtotal(newRow);
+            });
+        }
+
         document.getElementById('detalles-container').appendChild(newRow);
         formCount++;
         updateManagementForm();
     }
 
     // =============== EVENTOS ===============
-    // Botón "Agregar línea"
     const addLineBtn = document.getElementById('add-line');
     if (addLineBtn) {
         addLineBtn.addEventListener('click', addNewLine);
     }
 
-    // Eliminar filas existentes (al cargar la página)
+    // Eliminar filas existentes
     document.querySelectorAll('.remove-line').forEach(btn => {
         btn.addEventListener('click', function () {
             this.closest('.detalle-row').remove();
@@ -116,9 +161,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const row = allRows[currentDetalleIndex];
             const nombreInput = row.querySelector('.material-nombre');
             const selectMaterial = row.querySelector('select[name$="material"]');
+            const aplicaIvaInput = row.querySelector('input[name$="aplica_iva"]');
 
             if (nombreInput) nombreInput.value = nombre;
             if (selectMaterial) selectMaterial.value = id;
+
+            // Actualizar aplica_iva y recalcular
+            if (aplicaIvaInput && materialesData[id]) {
+                aplicaIvaInput.value = materialesData[id].aplica_iva ? 'true' : 'false';
+                calcularPrecios(row);
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalMateriales'));
             if (modal) modal.hide();
@@ -145,4 +197,23 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // === INICIALIZAR CÁLCULOS EN FILAS EXISTENTES ===
+    document.querySelectorAll('.detalle-row').forEach(row => {
+        const precioBaseInput = row.querySelector('.precio-base');
+        if (precioBaseInput) {
+            precioBaseInput.addEventListener('input', function() {
+                calcularPrecios(row);
+            });
+            // Calcular inicial
+            calcularPrecios(row);
+        }
+        const cantidadInput = row.querySelector('input[name$="cantidad"]');
+        if (cantidadInput) {
+            cantidadInput.addEventListener('input', function() {
+                calcularSubtotal(row);
+            });
+        }
+        calcularPrecios(row);
+    });
 });
