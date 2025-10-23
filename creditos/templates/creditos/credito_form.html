@@ -1,0 +1,65 @@
+{% extends 'creditos/base_creditos.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4>Nuevo Crédito con Proveedor</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.proveedor.label_tag }}
+                            {{ form.proveedor }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.referencia.label_tag }}
+                            {{ form.referencia }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.monto_original.label_tag }}
+                            {{ form.monto_original }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.tasa_interes.label_tag }}
+                            <div class="input-group">
+                                {{ form.tasa_interes }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.fecha_desembolso.label_tag }}
+                            {{ form.fecha_desembolso }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.fecha_inicio_pagos.label_tag }}
+                            {{ form.fecha_inicio_pagos }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.frecuencia_pagos.label_tag }}
+                            {{ form.frecuencia_pagos }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.num_cuotas.label_tag }}
+                            {{ form.num_cuotas }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.metodo_calculo.label_tag }}
+                            {{ form.metodo_calculo }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-info">Crear Crédito</button>
+                    <a href="{% url 'creditos:credito_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'creditos/base_creditos.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Créditos con Proveedores</h2>
+    <a href="{% url 'creditos:credito_create' %}" class="btn btn-success">+ Nuevo Crédito</a>
+</div>
+
+{% if creditos %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-info">
+            <tr>
+                <th>Referencia</th>
+                <th>Proveedor</th>
+                <th>Monto Original</th>
+                <th>Saldo</th>
+                <th>Próxima Cuota</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for credito in creditos %}
+            <tr>
+                <td>{{ credito.referencia }}</td>
+                <td>{{ credito.proveedor.nombre }}</td>
+                <td>${{ credito.monto_original|floatformat:2|intcomma }}</td>
+                <td>${{ credito.saldo_actual|floatformat:2|intcomma }}</td>
+                <td>
+                    {% with proxima=credito.get_proxima_cuota %}
+                        {% if proxima %}{{ proxima.fecha_vencimiento|date:"d/m/Y" }}{% else %}—{% endif %}
+                    {% endwith %}
+                </td>
+                <td>
+                    <span class="badge bg-{% if credito.estado == 'pagado' %}success{% elif credito.estado == 'activo' %}warning{% else %}secondary{% endif %}">
+                        {{ credito.get_estado_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'creditos:credito_detail' credito.pk %}" class="btn btn-sm btn-info">Ver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay créditos registrados.</div>
+{% endif %}
+{% endblock %}

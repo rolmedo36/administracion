@@ -1,0 +1,45 @@
+{% extends 'creditos/base_creditos.html' %}
+{% load humanize %}
+
+{% block title %}Detalle de Pago - Crédito {{ pago.amortizacion.credito.referencia }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5>Detalle de Pago</h5>
+                <p class="mb-0">Crédito: {{ pago.amortizacion.credito.referencia }}</p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Proveedor:</strong><br> {{ pago.amortizacion.credito.proveedor.nombre }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Cuota:</strong><br> {{ pago.amortizacion.numero_cuota }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Monto Pagado:</strong><br> <strong>${{ pago.monto_pagado|floatformat:2|intcomma }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Fecha de Pago:</strong><br> {{ pago.fecha_pago|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Referencia:</strong><br> {{ pago.referencia_pago|default:"—" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Registrado por:</strong><br> {{ pago.creado_por.username }}</p>
+                    </div>
+                    <div class="col-md-12">
+                        <p><strong>Fecha de Registro:</strong><br> {{ pago.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'creditos:credito_detail' pago.amortizacion.credito.pk %}" class="btn btn-secondary">Volver al Crédito</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

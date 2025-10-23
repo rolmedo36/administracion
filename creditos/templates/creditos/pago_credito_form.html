@@ -1,0 +1,46 @@
+{% extends 'creditos/base_creditos.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5>Registrar Pago - Crédito {{ amortizacion.credito.referencia }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Cuota:</strong> {{ amortizacion.numero_cuota }}</p>
+                <p><strong>Monto a pagar:</strong> ${{ amortizacion.monto_total|floatformat:2|intcomma }}</p>
+                <p><strong>Vencimiento:</strong> {{ amortizacion.fecha_vencimiento|date:"d/m/Y" }}</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.monto_pagado.label_tag }}
+                        {{ form.monto_pagado }}
+                        {% if form.monto_pagado.errors %}
+                            <div class="text-danger">{{ form.monto_pagado.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.fecha_pago.label_tag }}
+                        {{ form.fecha_pago }}
+                        {% if form.fecha_pago.errors %}
+                            <div class="text-danger">{{ form.fecha_pago.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.referencia_pago.label_tag }}
+                        {{ form.referencia_pago }}
+                        {% if form.referencia_pago.errors %}
+                            <div class="text-danger">{{ form.referencia_pago.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-success">Registrar Pago</button>
+                    <a href="{% url 'creditos:credito_detail' amortizacion.credito.pk %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

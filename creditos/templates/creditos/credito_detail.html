@@ -1,0 +1,98 @@
+<!-- creditos/templates/creditos/credito_detail.html -->
+{% extends 'creditos/base_creditos.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Crédito {{ credito.referencia }}</h2>
+    <a href="{% url 'creditos:credito_list' %}" class="btn btn-secondary">Volver</a>
+</div>
+
+<!-- Información general -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Información General</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Proveedor:</strong><br> {{ credito.proveedor.nombre }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Monto Original:</strong><br> ${{ credito.monto_original|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Saldo Actual:</strong><br> ${{ credito.saldo_actual|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Tasa de Interés:</strong><br> {{ credito.tasa_interes }}% mensual</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Método de Cálculo:</strong><br> {{ credito.get_metodo_calculo_display }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Estado:</strong><br>
+                    <span class="badge bg-{% if credito.estado == 'pagado' %}success{% elif credito.estado == 'activo' %}warning{% else %}secondary{% endif %}">
+                        {{ credito.get_estado_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+        {% if credito.descripcion %}
+        <div class="mt-3">
+            <p><strong>Descripción:</strong><br> {{ credito.descripcion }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tabla de amortización -->
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Plan de Pagos</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cuota</th>
+                        <th>Vencimiento</th>
+                        <th>Capital</th>
+                        <th>Interés</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for amort in credito.amortizaciones.all %}
+                    <tr class="{% if amort.estado == 'vencido' %}table-danger{% elif amort.estado == 'pendiente' %}table-warning{% else %}table-success{% endif %}">
+                        <td>{{ amort.numero_cuota }}</td>
+                        <td>{{ amort.fecha_vencimiento|date:"d/m/Y" }}</td>
+                        <td>${{ amort.capital|floatformat:2|intcomma }}</td>
+                        <td>${{ amort.interes|floatformat:2|intcomma }}</td>
+                        <td>${{ amort.monto_total|floatformat:2|intcomma }}</td>
+                        <td>
+                            <span class="badge bg-{% if amort.estado == 'pagado' %}success{% elif amort.estado == 'vencido' %}danger{% else %}warning{% endif %}">
+                                {{ amort.get_estado_display }}
+                            </span>
+                            {% if amort.estado == 'pagado' and amort.fecha_pago %}
+                                <br><small class="text-muted">{{ amort.fecha_pago|date:"d/m/Y" }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if amort.estado == 'pagado' and amort.pagos.exists %}
+                                <a href="{% url 'creditos:detalle_pago' amort.pagos.first.id %}" class="btn btn-sm btn-info">Ver Pago</a>
+                            {% elif amort.estado == 'pendiente' or amort.estado == 'vencido' %}
+                                <a href="{% url 'creditos:registrar_pago_credito' amort.id %}" class="btn btn-sm btn-success">Pagar</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

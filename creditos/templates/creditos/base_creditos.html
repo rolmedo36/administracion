@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block subnavbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-info" href="{% url 'creditos:credito_index' %}">
+            Módulo Créditos
+        </a>
+        <div class="navbar-nav">
+            <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="catalogosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Créditos
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="catalogosDropdown">
+                    <li>
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'material_list' or 'material_' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'creditos:credito_list' %}">
+                            Mostrar créditos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-item dropdown">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Reportes
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
+                        <li>
+                            <a class="dropdown-item {% if request.resolver_match.url_name == 'material_list' or 'material_' in request.resolver_match.url_name %}active{% endif %}"
+                               href="{% url 'creditos:reporte_vencimientos' %}">
+                                Vencimientos próximos
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</nav>
+{% endblock %}
