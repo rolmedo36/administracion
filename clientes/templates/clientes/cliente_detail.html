@@ -1,0 +1,91 @@
+{% extends 'clientes/base_clientes.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Cliente <span class="text-success">{{ cliente.nombre }}</span></h2>
+    <a href="{% url 'clientes:cliente_list' %}" class="btn btn-secondary">Volver</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Código:</strong> {{ cliente.codigo }}</p>
+                <p><strong>Nombre:</strong> {{ cliente.nombre }}</p>
+                {% if cliente.nombre_comercial %}
+                <p><strong>Nombre Comercial:</strong> {{ cliente.nombre_comercial }}</p>
+                {% endif %}
+                <p><strong>Tipo:</strong> {{ cliente.get_tipo_cliente_display }}</p>
+                <p><strong>Clasificación:</strong>
+                    <span class="badge bg-{% if cliente.clasificacion == 'A' %}success{% elif cliente.clasificacion == 'B' %}warning{% else %}secondary{% endif %}">
+                        {{ cliente.get_clasificacion_display_full }}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Identificación Fiscal</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>RFC:</strong> {{ cliente.rfc }}</p>
+                {% if cliente.curp %}
+                <p><strong>CURP:</strong> {{ cliente.curp }}</p>
+                {% endif %}
+                <p><strong>Régimen Fiscal:</strong> {{ cliente.get_regimen_fiscal_display }}</p>
+                <p><strong>Uso CFDI:</strong> {{ cliente.get_uso_cfdi_display }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Contacto</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Email:</strong> {{ cliente.email|default:"—" }}</p>
+                <p><strong>Teléfono:</strong> {{ cliente.telefono|default:"—" }}</p>
+                <p><strong>Móvil:</strong> {{ cliente.telefono_movil|default:"—" }}</p>
+                {% if cliente.contacto_nombre %}
+                <p><strong>Contacto:</strong> {{ cliente.contacto_nombre }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Dirección Fiscal</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ cliente.calle }}</p>
+                <p>{{ cliente.colonia }}, {{ cliente.codigo_postal }}</p>
+                <p>{{ cliente.ciudad }}, {{ cliente.estado }}</p>
+                <p>{{ cliente.pais }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Condiciones Comerciales</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Límite de Crédito:</strong> ${{ cliente.limite_credito|floatformat:2|intcomma }}</p>
+                <p><strong>Días de Crédito:</strong> {{ cliente.dias_credito }} días</p>
+                <p><strong>Descuento:</strong> {{ cliente.descuento }}%</p>
+                <p><strong>Moneda:</strong> {{ cliente.get_moneda_display }}</p>
+                <p><strong>Estado:</strong> {% if cliente.activo %}✅ Activo{% else %}❌ Inactivo{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'clientes:cliente_update' cliente.pk %}" class="btn btn-warning">Editar Cliente</a>
+</div>
+{% endblock %}

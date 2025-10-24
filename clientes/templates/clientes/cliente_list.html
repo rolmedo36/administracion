@@ -1,0 +1,117 @@
+{% extends 'clientes/base_clientes.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Clientes</h2>
+    <a href="{% url 'clientes:cliente_create' %}" class="btn btn-success">+ Nuevo Cliente</a>
+</div>
+
+<!-- Filtros y exportación -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <form method="get" class="row g-2">
+            <div class="col-md-8">
+                <input type="text" name="nombre" class="form-control"
+                       placeholder="Buscar por nombre, código o nombre comercial..."
+                       value="{{ nombre_query }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-outline-primary w-100">Buscar</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="?export=excel{% if nombre_query %}&nombre={{ nombre_query|urlencode }}{% endif %}"
+           class="btn btn-outline-success">
+            📊 Exportar a Excel
+        </a>
+    </div>
+</div>
+
+<!-- Tabla de clientes -->
+{% if page_obj %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-success">
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>RFC</th>
+                <th>Tipo</th>
+                <th>Clasificación</th>
+                <th>Límite Crédito</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in page_obj %}
+            <tr>
+                <td>{{ cliente.codigo }}</td>
+                <td>
+                    {{ cliente.nombre }}
+                    {% if cliente.nombre_comercial %}<br><small class="text-muted">{{ cliente.nombre_comercial }}</small>{% endif %}
+                </td>
+                <td>{{ cliente.rfc }}</td>
+                <td>{{ cliente.get_tipo_cliente_display }}</td>
+                <td>
+                    <span class="badge bg-{% if cliente.clasificacion == 'A' %}success{% elif cliente.clasificacion == 'B' %}warning{% else %}secondary{% endif %}">
+                        {{ cliente.get_clasificacion_display }}
+                    </span>
+                </td>
+                <td>${{ cliente.limite_credito|floatformat:2|intcomma }}</td>
+                <td>{% if cliente.activo %}✅{% else %}❌{% endif %}</td>
+                <td>
+                    <a href="{% url 'clientes:cliente_detail' cliente.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    <a href="{% url 'clientes:cliente_update' cliente.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginación -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginación de clientes">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if nombre_query %}&nombre={{ nombre_query|urlencode }}{% endif %}" aria-label="Primera">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if nombre_query %}&nombre={{ nombre_query|urlencode }}{% endif %}" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if nombre_query %}&nombre={{ nombre_query|urlencode }}{% endif %}" aria-label="Siguiente">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if nombre_query %}&nombre={{ nombre_query|urlencode }}{% endif %}" aria-label="Última">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">No hay clientes que coincidan con los criterios de búsqueda.</div>
+{% endif %}
+{% endblock %}

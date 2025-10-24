@@ -1,0 +1,132 @@
+{% extends 'clientes/base_clientes.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>{% if object %}Editar Cliente{% else %}Nuevo Cliente{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <!-- Información básica -->
+                        <div class="col-md-4 mb-3">
+                            {{ form.codigo.label_tag }}
+                            {{ form.codigo }}
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            {{ form.nombre.label_tag }}
+                            {{ form.nombre }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.nombre_comercial.label_tag }}
+                            {{ form.nombre_comercial }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.tipo_cliente.label_tag }}
+                            {{ form.tipo_cliente }}
+                        </div>
+
+                        <!-- Identificación fiscal -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.rfc.label_tag }}
+                            {{ form.rfc }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.curp.label_tag }}
+                            {{ form.curp }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.regimen_fiscal.label_tag }}
+                            {{ form.regimen_fiscal }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.uso_cfdi.label_tag }}
+                            {{ form.uso_cfdi }}
+                        </div>
+
+                        <!-- Contacto -->
+                        <div class="col-md-6 mb-3">
+                            {{ form.email.label_tag }}
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.telefono.label_tag }}
+                            {{ form.telefono }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.telefono_movil.label_tag }}
+                            {{ form.telefono_movil }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.contacto_nombre.label_tag }}
+                            {{ form.contacto_nombre }}
+                        </div>
+
+                        <!-- Dirección -->
+                        <div class="col-md-8 mb-3">
+                            {{ form.calle.label_tag }}
+                            {{ form.calle }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.codigo_postal.label_tag }}
+                            {{ form.codigo_postal }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.colonia.label_tag }}
+                            {{ form.colonia }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.ciudad.label_tag }}
+                            {{ form.ciudad }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.estado.label_tag }}
+                            {{ form.estado }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.pais.label_tag }}
+                            {{ form.pais }}
+                        </div>
+
+                        <!-- Condiciones comerciales -->
+                        <div class="col-md-4 mb-3">
+                            {{ form.limite_credito.label_tag }}
+                            {{ form.limite_credito }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.dias_credito.label_tag }}
+                            {{ form.dias_credito }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.descuento.label_tag }}
+                            <div class="input-group">
+                                {{ form.descuento }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.moneda.label_tag }}
+                            {{ form.moneda }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.clasificacion.label_tag }}
+                            {{ form.clasificacion }}
+                        </div>
+
+                        <!-- Control -->
+                        <div class="col-12 mb-3">
+                            {{ form.activo }}
+                            {{ form.activo.label_tag }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Cliente</button>
+                    <a href="{% url 'clientes:cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

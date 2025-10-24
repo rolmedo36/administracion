@@ -1,0 +1,54 @@
+<!-- compras/templates/compras/base_compras.html -->
+{% extends 'base.html' %}
+
+{% block subnavbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-success" href="{% url 'clientes:cliente_index' %}">
+            Módulo Ventas
+        </a>
+        <div class="navbar-nav">
+            <!-- Catálogos -->
+            <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="catalogosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Catálogos
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="catalogosDropdown">
+                    <li>
+                        <a class="dropdown-item {% if 'cliente_' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'clientes:cliente_list' %}">
+                            Clientes
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Transacciones -->
+            <div class="nav-item dropdown ms-3">
+                <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Transacciones
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
+                    <li>
+                        <a class="dropdown-item {% if 'cliente_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                           href="{% url 'clientes:cliente_list' %}">
+                            Ventas
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+.dropdown-item.active {
+    background-color: #e9ecef;
+    color: #198754;
+    font-weight: bold;
+}
+.navbar-nav .nav-item .dropdown-menu {
+    margin-top: 0;
+}
+</style>
+{% endblock %}
