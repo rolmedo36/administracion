@@ -1,0 +1,22 @@
+{% extends 'ventas/base_ventas.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header bg-warning text-white">
+                <h5>Confirmar Conversión a Pedido</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Está seguro de que desea convertir la cotización <strong>COT-{{ cotizacion.id }}</strong> en un pedido de venta?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">Convertir a Pedido</button>
+                    <a href="{% url 'ventas:cotizacion_detail' cotizacion.pk %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

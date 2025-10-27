@@ -30,9 +30,9 @@
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
                     <li>
-                        <a class="dropdown-item {% if 'cliente_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
-                           href="{% url 'clientes:cliente_list' %}">
-                            Ventas
+                        <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                           href="{% url 'ventas:cotizacion_list' %}">
+                            Cotizaciones
                         </a>
                     </li>
                 </ul>

@@ -1,0 +1,235 @@
+{% extends 'ventas/base_ventas.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4>Nueva Cotización de Venta</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="cotizacionForm">
+                    {% csrf_token %}
+
+                    <!-- Campo cliente (oculto) -->
+                    {{ form.cliente }}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cliente</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cliente_display"
+                                    value="{% if object.cliente %}{{ object.cliente }}{% endif %}"
+                                    readonly placeholder="Seleccionar cliente...">
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalClientes">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.dias_validez.label_tag }}
+                            {{ form.dias_validez }}
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Detalles de la Cotización</h5>
+                    {{ formset.management_form }}
+                    <div id="detalles-container">
+                        {% for form in formset %}
+                        <div class="detalle-row border p-3 mb-3 rounded">
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                            {{ form.material }}
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Material</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control material-nombre"
+                                            value="{% if form.instance.material %}{{ form.instance.material }}{% endif %}"
+                                            readonly placeholder="Seleccionar material...">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalMateriales" data-detalle-index="{{ forloop.counter0 }}">
+                                            Buscar
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.cantidad.label_tag }}
+                                    {{ form.cantidad }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.precio_unitario.label_tag }}
+                                    {{ form.precio_unitario }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.descuento.label_tag }}
+                                    <div class="input-group">
+                                        {{ form.descuento }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    {% if form.instance.pk %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label">Eliminar</label>
+                                        </div>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-danger">Crear Cotización</button>
+                    <a href="{% url 'ventas:cotizacion_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Clientes -->
+<div class="modal fade" id="modalClientes" tabindex="-1" aria-labelledby="modalClientesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalClientesLabel">Seleccionar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="searchCliente" placeholder="Buscar cliente...">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>RFC</th>
+                                <th>Ciudad</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesTableBody">
+                            {% for cli in clientes %}
+                            <tr>
+                                <td>{{ cli.codigo }}</td>
+                                <td>{{ cli.nombre }}</td>
+                                <td>{{ cli.rfc }}</td>
+                                <td>{{ cli.ciudad }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary select-cliente"
+                                        data-id="{{ cli.id }}"
+                                        data-nombre="{{ cli.nombre }} ({{ cli.codigo }})">
+                                        Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Materiales -->
+<div class="modal fade" id="modalMateriales" tabindex="-1" aria-labelledby="modalMaterialesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMaterialesLabel">Seleccionar Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="searchMaterial" placeholder="Buscar material (código o nombre)...">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialesTableBody">
+                            {% for mat in materiales %}
+                            <tr>
+                                <td>{{ mat.codigo }}</td>
+                                <td>{{ mat.nombre }}</td>
+                                <td>{{ mat.categoria.nombre }}</td>
+                                <td>
+                                    <span class="badge bg-{% if mat.es_inventariable %}info{% else %}secondary{% endif %}">
+                                        {{ mat.tipo_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary select-material"
+                                        data-id="{{ mat.id }}"
+                                        data-nombre="{{ mat.codigo }} - {{ mat.nombre }}"
+                                        data-detalle-index="">
+                                        Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plantilla vacía para líneas dinámicas -->
+<div id="empty-form" style="display:none;">
+    {% for hidden in empty_form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+    {{ empty_form.material }}
+    <div class="row">
+        <div class="col-md-4">
+            <label class="form-label">Material</label>
+            <div class="input-group">
+                <input type="text" class="form-control material-nombre"
+                    readonly placeholder="Seleccionar material...">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalMateriales">
+                    Buscar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-2">
+            {{ empty_form.cantidad.label_tag }}
+            {{ empty_form.cantidad }}
+        </div>
+        <div class="col-md-2">
+            {{ empty_form.precio_unitario.label_tag }}
+            {{ empty_form.precio_unitario }}
+        </div>
+        <div class="col-md-2">
+            {{ empty_form.descuento.label_tag }}
+            <div class="input-group">
+                {{ empty_form.descuento }}
+                <span class="input-group-text">%</span>
+            </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<script>
+    window.formsetTotalForms = {{ formset.total_form_count }};
+</script>
+{% block extra_js %}
+<script src="{% static 'ventas/js/cotizacion_form.js' %}"></script>
+{% endblock %}
