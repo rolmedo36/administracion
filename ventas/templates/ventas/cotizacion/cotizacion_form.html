@@ -2,17 +2,37 @@
 {% load static %}
 
 {% block content %}
+{% if form.errors or formset.errors %}
+<div class="alert alert-danger">
+    <h5>Errores de validación:</h5>
+    <ul>
+        {% for field in form %}
+            {% if field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ field.errors }}</li>
+            {% endif %}
+        {% endfor %}
+        {% for form_d in formset %}
+            {% for field in form_d %}
+                {% if field.errors %}
+                    <li><strong>Detalle {{ forloop.parentloop.counter }} - {{ field.label }}:</strong> {{ field.errors }}</li>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card">
             <div class="card-header bg-danger text-white">
-                <h4>Nueva Cotización de Venta</h4>
+                <h4>{% if object %}Editar Cotización{% else %}Nueva Cotización de Venta{% endif %}</h4>
             </div>
             <div class="card-body">
                 <form method="post" id="cotizacionForm">
                     {% csrf_token %}
 
-                    <!-- Campo cliente (oculto) -->
+                    <!-- Campo cliente (oculto, requerido por Django) -->
                     {{ form.cliente }}
 
                     <div class="row mb-3">
@@ -50,7 +70,7 @@
                                         <input type="text" class="form-control material-nombre"
                                             value="{% if form.instance.material %}{{ form.instance.material }}{% endif %}"
                                             readonly placeholder="Seleccionar material...">
-                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalMateriales" data-detalle-index="{{ forloop.counter0 }}">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalMateriales">
                                             Buscar
                                         </button>
                                     </div>
@@ -71,21 +91,18 @@
                                     </div>
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
-                                    {% if form.instance.pk %}
-                                        <div class="form-check">
-                                            {{ form.DELETE }}
-                                            <label class="form-check-label">Eliminar</label>
-                                        </div>
-                                    {% else %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
-                                    {% endif %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
 
-                    <button type="submit" class="btn btn-danger">Crear Cotización</button>
+                    <button type="button" class="btn btn-outline-primary mb-3" id="add-line">
+                        + Agregar línea
+                    </button>
+
+                    <button type="submit" class="btn btn-danger">Guardar Cotización</button>
                     <a href="{% url 'ventas:cotizacion_list' %}" class="btn btn-secondary">Cancelar</a>
                 </form>
             </div>
@@ -173,8 +190,7 @@
                                 <td>
                                     <button class="btn btn-sm btn-primary select-material"
                                         data-id="{{ mat.id }}"
-                                        data-nombre="{{ mat.codigo }} - {{ mat.nombre }}"
-                                        data-detalle-index="">
+                                        data-nombre="{{ mat.codigo }} - {{ mat.nombre }}">
                                         Seleccionar
                                     </button>
                                 </td>
@@ -188,7 +204,7 @@
     </div>
 </div>
 
-<!-- Plantilla vacía para líneas dinámicas -->
+<!-- Plantilla vacía para clonar nuevas líneas -->
 <div id="empty-form" style="display:none;">
     {% for hidden in empty_form.hidden_fields %}
         {{ hidden }}
@@ -227,9 +243,11 @@
 </div>
 
 {% endblock %}
+
+{% block extra_js %}
 <script>
+    // Pasar variables desde Django al JavaScript
     window.formsetTotalForms = {{ formset.total_form_count }};
 </script>
-{% block extra_js %}
 <script src="{% static 'ventas/js/cotizacion_form.js' %}"></script>
 {% endblock %}

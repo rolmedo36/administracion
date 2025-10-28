@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db import transaction
-from .models import CotizacionVenta, PedidoVenta, DetallePedido, Cliente, Material
+from .models import CotizacionVenta, PedidoVenta, DetallePedido, Cliente, Material, DetalleCotizacion
 from .forms import CotizacionVentaForm, DetalleCotizacionFormSet
 
 
@@ -31,12 +31,14 @@ def cotizacion_create(request):
 
                     detalles = formset.save(commit=False)
                     for detalle in detalles:
+                        # Asegurar descuento = 0 si es None
+                        if detalle.descuento is None:
+                            detalle.descuento = 0
                         detalle.cotizacion = cotizacion
                         detalle.save()
                     for detalle in formset.deleted_objects:
                         detalle.delete()
 
-                    # Calcular total
                     total = sum(detalle.subtotal for detalle in cotizacion.detalles.all())
                     cotizacion.total = total
                     cotizacion.save()
@@ -49,21 +51,23 @@ def cotizacion_create(request):
             messages.error(request, "Por favor corrija los errores en el formulario.")
     else:
         form = CotizacionVentaForm()
-        formset = DetalleCotizacionFormSet()
+        # Crear formset con exactamente 1 formulario vacío
+        formset = DetalleCotizacionFormSet(
+            queryset=DetalleCotizacion.objects.none(),
+            initial=[{'descuento': 0}]  # ← Forzar descuento = 0
+        )
 
-    # Datos para modales
     clientes = Cliente.objects.filter(activo=True)
     materiales = Material.objects.filter(activo=True, es_inventariable=True)
 
     return render(request, 'ventas/cotizacion/cotizacion_form.html', {
         'form': form,
         'formset': formset,
-        'empty_form': formset.empty_form,  # ← Agrega esta línea
+        'empty_form': formset.empty_form,
         'clientes': clientes,
         'materiales': materiales,
         'object': None,
     })
-
 
 @login_required
 @permission_required('ventas.view_cotizacionventa', raise_exception=True)

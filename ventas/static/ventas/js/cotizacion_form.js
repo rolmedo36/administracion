@@ -1,19 +1,36 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Obtiene el número inicial de formularios
     let formCount = window.formsetTotalForms || 0;
     const emptyFormContainer = document.getElementById('empty-form');
     let currentDetalleIndex = null;
 
-    // === Función para agregar nueva línea ===
-    function addNewLine() {
+    // === Función para crear una nueva línea ===
+    function createNewLine() {
         if (!emptyFormContainer) {
             console.error("No se encontró el contenedor #empty-form");
-            return;
+            return null;
         }
 
+        // Clonar y reemplazar __prefix__ por el índice actual
         const newHtml = emptyFormContainer.innerHTML.replace(/__prefix__/g, formCount);
         const newRow = document.createElement('div');
         newRow.className = 'detalle-row border p-3 mb-3 rounded';
         newRow.innerHTML = newHtml;
+
+        const descuentoInput = newRow.querySelector('.descuento-input');
+        if (descuentoInput) {
+            descuentoInput.value = '0';
+        }
+
+        const cantidadInput = newRow.querySelector('.cantidad-input');
+        if (cantidadInput) {
+            cantidadInput.value = '1';
+        }
+
+        const precioInput = newRow.querySelector('.precio-input');
+        if (precioInput) {
+            precioInput.value = '0.00';
+        }
 
         // Configurar botón de eliminar
         const removeBtn = newRow.querySelector('.remove-line');
@@ -34,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // Limpiar campos
+        // Limpiar campos de la nueva fila
         newRow.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
             if (!input.hasAttribute('readonly')) {
                 input.value = '';
@@ -43,23 +60,31 @@ document.addEventListener('DOMContentLoaded', function () {
         const materialSelect = newRow.querySelector('select[name$="material"]');
         if (materialSelect) materialSelect.value = '';
 
-        document.getElementById('detalles-container').appendChild(newRow);
         formCount++;
-        updateManagementForm();
+        return newRow;
     }
 
     // === Actualizar management form ===
     function updateManagementForm() {
-        document.getElementById('id_detalles-TOTAL_FORMS').value = formCount;
+        const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
+        if (totalFormsInput) {
+            totalFormsInput.value = formCount;
+        }
     }
 
-    // === Botón para agregar línea ===
+    // === Evento: Agregar línea ===
     const addLineBtn = document.getElementById('add-line');
     if (addLineBtn) {
-        addLineBtn.addEventListener('click', addNewLine);
+        addLineBtn.addEventListener('click', function () {
+            const newRow = createNewLine();
+            if (newRow) {
+                document.getElementById('detalles-container').appendChild(newRow);
+                updateManagementForm();
+            }
+        });
     }
 
-    // === Eliminar líneas existentes ===
+    // === Configurar eliminación para filas existentes ===
     document.querySelectorAll('.remove-line').forEach(btn => {
         btn.addEventListener('click', function () {
             this.closest('.detalle-row').remove();
@@ -82,23 +107,31 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // === Materiales ===
-    document.getElementById('modalMateriales').addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        currentDetalleIndex = button.dataset.detalleIndex;
+    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Encontrar la fila padre
+            const row = this.closest('.detalle-row');
+            if (row) {
+                window.currentDetalleRow = row;
+            }
+        });
     });
 
     document.querySelectorAll('.select-material').forEach(button => {
         button.addEventListener('click', function () {
+            if (!window.currentDetalleRow) return;
+
             const id = this.dataset.id;
             const nombre = this.dataset.nombre;
 
-            if (currentDetalleIndex === null) return;
+            const nombreInput = window.currentDetalleRow.querySelector('.material-nombre');
+            const selectMaterial = window.currentDetalleRow.querySelector('select[name$="material"]');
 
-            const detalleRow = document.querySelectorAll('.detalle-row')[currentDetalleIndex];
-            detalleRow.querySelector('.material-nombre').value = nombre;
-            detalleRow.querySelector('select[name$="material"]').value = id;
+            if (nombreInput) nombreInput.value = nombre;
+            if (selectMaterial) selectMaterial.value = id;
 
             bootstrap.Modal.getInstance(document.getElementById('modalMateriales')).hide();
+            window.currentDetalleRow = null;
         });
     });
 
