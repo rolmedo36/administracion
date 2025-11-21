@@ -1,0 +1,60 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Flujo de Caja - {{ fecha|date:"d/m/Y" }}</h2>
+    <form method="get" class="row g-2">
+        <div class="col-md-8">
+            <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Resumen del Día</h5>
+        <p><strong>Ingresos:</strong> ${{ total_ingresos|floatformat:2|intcomma }}</p>
+        <p><strong>Egresos:</strong> ${{ total_egresos|floatformat:2|intcomma }}</p>
+        <p><strong>Saldo Neto:</strong>
+            <span class="text-{% if saldo_neto >= 0 %}success{% else %}danger{% endif %}">
+                ${{ saldo_neto|floatformat:2|intcomma }}
+            </span>
+        </p>
+    </div>
+</div>
+
+{% if movimientos %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-info">
+            <tr>
+                <th>Cuenta Bancaria</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Referencia</th>
+                <th>Documento</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movimientos %}
+            <tr class="{% if m.tipo_movimiento == 'ingreso' %}table-success{% else %}table-danger{% endif %}">
+                <td>{{ m.cuenta_bancaria.banco.nombre }}<br><small>{{ m.cuenta_bancaria.numero_cuenta }}</small></td>
+                <td>{{ m.get_tipo_movimiento_display }}</td>
+                <td>${{ m.monto|floatformat:2|intcomma }}</td>
+                <td>{{ m.descripcion|truncatechars:60 }}</td>
+                <td>{{ m.referencia|default:"—" }}</td>
+                <td>{{ m.documento_numero|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay movimientos registrados para esta fecha.</div>
+{% endif %}
+{% endblock %}

@@ -9,6 +9,7 @@ from .forms import ProveedorForm, OrdenCompraForm, DetalleOrdenFormSet, Recepcio
 from materiales.models import Material
 from datetime import date
 import json
+from flujocaja.models import MovimientoBancario
 
 # === PROVEEDORES (mantenemos CBV o FBV, pero por consistencia usamos FBV) ===
 
@@ -123,6 +124,15 @@ def ordencompra_create(request):
         }
         for mat in Material.objects.filter(activo=True)
     }
+
+    # return render(request, 'compras/ordencompra_form.html', {
+    #     'form': form,
+    #     'formset': formset,
+    #     'empty_form': formset.empty_form,  # ← Asegúrate de que esto esté
+    #     'proveedores': proveedores,
+    #     'materiales': materiales,
+    #     'object': None,
+    # })
 
     return render(request, 'compras/ordencompra_form.html', {
         'form': form,
@@ -242,6 +252,21 @@ def registrar_pago_cxp(request, cxp_id):
             pago.cuenta_por_pagar = cxp
             pago.creado_por = request.user
             pago.save()
+
+            # CREAR MOVIMIENTO BANCARIO DE EGRESO
+            MovimientoBancario.objects.create(
+                cuenta_bancaria=form.cleaned_data['cuenta_bancaria'],
+                tipo_movimiento='egreso',
+                monto=pago.monto,
+                fecha=pago.fecha_pago,
+                descripcion=f"Pago a proveedor: {cxp.proveedor.nombre}",
+                referencia=pago.referencia,
+                tipo_documento='pago_proveedor',
+                documento_id=cxp.id,
+                documento_numero=cxp.referencia,
+                creado_por=request.user,
+            )
+
             messages.success(request, f"Pago de ${pago.monto} registrado exitosamente.")
             return redirect('compras:detalle_cxp', cxp_id=cxp.id)
     else:

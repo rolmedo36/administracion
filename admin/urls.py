@@ -27,5 +27,6 @@ urlpatterns = [
     path('creditos/', include('creditos.urls')),
     path('clientes/', include('clientes.urls')),
     path('ventas/', include('ventas.urls')),
+    path('flujocaja/', include('flujocaja.urls')),
     path('', RedirectView.as_view(url='/core/dashboard/')),  # Redirige a dashboard
 ]

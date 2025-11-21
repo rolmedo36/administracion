@@ -1,0 +1,58 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>{% if object %}Editar Cuenta Bancaria{% else %}Nueva Cuenta Bancaria{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.banco.label_tag }}
+                            {{ form.banco }}
+                            {% if form.banco.errors %}<div class="text-danger">{{ form.banco.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.numero_cuenta.label_tag }}
+                            {{ form.numero_cuenta }}
+                            {% if form.numero_cuenta.errors %}<div class="text-danger">{{ form.numero_cuenta.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.clabe.label_tag }}
+                            {{ form.clabe }}
+                            {% if form.clabe.errors %}<div class="text-danger">{{ form.clabe.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.tipo_cuenta.label_tag }}
+                            {{ form.tipo_cuenta }}
+                            {% if form.tipo_cuenta.errors %}<div class="text-danger">{{ form.tipo_cuenta.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.moneda.label_tag }}
+                            {{ form.moneda }}
+                            {% if form.moneda.errors %}<div class="text-danger">{{ form.moneda.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}<div class="text-danger">{{ form.descripcion.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check">
+                                {{ form.activo }}
+                                {{ form.activo.label_tag }}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Cuenta</button>
+                    <a href="{% url 'flujocaja:cuentabancaria_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

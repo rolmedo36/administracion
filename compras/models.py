@@ -172,6 +172,15 @@ class PagoCuentaPorPagar(models.Model):
     monto = models.DecimalField(max_digits=14, decimal_places=2)
     fecha_pago = models.DateField()
     referencia = models.CharField("Referencia (comprobante)", max_length=100, blank=True)
+
+    cuenta_bancaria = models.ForeignKey(
+        'flujocaja.CuentaBancaria',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Cuenta Bancaria"
+    )
+
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 

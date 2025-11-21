@@ -1,0 +1,51 @@
+{% extends 'ventas/base_ventas.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Cuentas por Cobrar</h2>
+    <a href="{% url 'ventas:cxc_list' %}" class="btn btn-primary">Ver Reportes</a>
+</div>
+
+{% if cxcs %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-info">
+            <tr>
+                <th>Factura</th>
+                <th>Cliente</th>
+                <th>Monto Total</th>
+                <th>Saldo Pendiente</th>
+                <th>Vencimiento</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cxc in cxcs %}
+            <tr>
+                <td>{{ cxc.factura.folio }}</td>
+                <td>{{ cxc.cliente.nombre }}</td>
+                <td>${{ cxc.monto_total|floatformat:2|intcomma }}</td>
+                <td>${{ cxc.saldo_pendiente|floatformat:2|intcomma }}</td>
+                <td>{{ cxc.fecha_vencimiento|date:"d/m/Y" }}</td>
+                <td>
+                    <span class="badge bg-{% if cxc.estado == 'pagado' %}success{% elif cxc.estado == 'parcial' %}warning{% else %}danger{% endif %}">
+                        {{ cxc.get_estado_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'ventas:cxc_detail' cxc.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    {% if cxc.saldo_pendiente > 0 %}
+                        <a href="{% url 'ventas:registrar_pago_cxc' cxc.id %}" class="btn btn-sm btn-success">Registrar Pago</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay cuentas por cobrar registradas.</div>
+{% endif %}
+{% endblock %}

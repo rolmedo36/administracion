@@ -1,0 +1,66 @@
+{% extends 'ventas/base_ventas.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5>Stock Insuficiente</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle"></i> No se puede surtir el pedido</h6>
+                    <p class="mb-0">El pedido <strong>PED-{{ pedido.id }}</strong> no puede ser surtido debido a <strong>insuficiencia de stock</strong> en uno o más materiales.</p>
+                </div>
+
+                <h6>Detalles del pedido:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Cantidad Solicitada</th>
+                                <th>Stock Disponible</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in faltante %}
+                            <tr class="table-warning">
+                                <td>{{ item.material.nombre }}</td>
+                                <td>{{ item.solicitado }}</td>
+                                <td>{{ item.disponible }}</td>
+                                <td>
+                                    <span class="badge bg-danger">
+                                        Insuficiente
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Sugerencias:</strong>
+                    <ul>
+                        <li>Verifique el stock en otros almacenes</li>
+                        <li>Contacte al área de compras para reabastecimiento</li>
+                        <li>Considere hacer un <strong>surtido parcial</strong> si es posible</li>
+                    </ul>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'ventas:pedido_detail' pedido.pk %}" class="btn btn-secondary">
+                        Volver al Pedido
+                    </a>
+                    <a href="{% url 'ventas:pedido_list' %}" class="btn btn-outline-primary">
+                        Ver Todos los Pedidos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

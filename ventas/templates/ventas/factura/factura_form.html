@@ -1,20 +1,9 @@
-<!-- compras/templates/compras/ordencompra_form.html -->
-{% extends 'compras/base_compras.html' %}
+{% extends 'ventas/base_ventas.html' %}
+{% load humanize %}
 {% load static %}
 
-{% block title %}{% if object %}Editar Orden{% else %}Nueva Orden de Compra{% endif %}{% endblock %}
-
-{% block extra_css %}
-<style>
-.table-searchable input {
-    margin-bottom: 10px;
-    width: 100%;
-}
-</style>
-{% endblock %}
-
 {% block content %}
-{% if form.errors or detalles.errors %}
+{% if form.errors or formset.errors %}
 <div class="alert alert-danger">
     <h5>Errores de validación:</h5>
     <ul>
@@ -23,18 +12,12 @@
                 <li><strong>{{ field.label }}:</strong> {{ field.errors }}</li>
             {% endif %}
         {% endfor %}
-        {% if form.non_field_errors %}
-            <li>{{ form.non_field_errors }}</li>
-        {% endif %}
-        {% for form_d in detalles %}
+        {% for form_d in formset %}
             {% for field in form_d %}
                 {% if field.errors %}
                     <li><strong>Detalle {{ forloop.parentloop.counter }} - {{ field.label }}:</strong> {{ field.errors }}</li>
                 {% endif %}
             {% endfor %}
-            {% if form_d.non_field_errors %}
-                <li>Detalle {{ forloop.parentloop.counter }}: {{ form_d.non_field_errors }}</li>
-            {% endif %}
         {% endfor %}
     </ul>
 </div>
@@ -42,57 +25,65 @@
 
 <div class="row justify-content-center">
     <div class="col-md-10">
-        <div class="card shadow">
+        <div class="card">
             <div class="card-header bg-success text-white">
-                <h4>{% if object %}Editar Orden de Compra{% else %}Nueva Orden de Compra{% endif %}</h4>
+                <h4>{% if object %}Editar Factura{% else %}Nueva Factura de Venta{% endif %}</h4>
             </div>
             <div class="card-body">
-                <form method="post" id="ordenCompraForm">
+                <form method="post" id="facturaForm">
                     {% csrf_token %}
 
-                    <!-- Campo proveedor (oculto, pero requerido por Django) -->
-                    {{ form.proveedor }}
+                    <!-- Campo cliente (oculto, requerido por Django) -->
+                    {{ form.cliente }}
+
+                    <!-- Campo pedido (oculto) -->
+                    {{ form.pedido }}
 
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            {{ form.numero.label_tag }}
-                            {{ form.numero }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Proveedor</label>
+                            <label class="form-label">Cliente</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="proveedor_display"
-                                    value="{% if object.proveedor %}{{ object.proveedor }}{% endif %}"
-                                    readonly placeholder="Seleccionar proveedor...">
-                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalProveedores">
+                                <input type="text" class="form-control" id="cliente_display"
+                                    value="{% if object.cliente %}{{ object.cliente }}{% endif %}"
+                                    readonly placeholder="Seleccionar cliente...">
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalClientes">
                                     Buscar
                                 </button>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                {{ form.estado.label_tag }}
-                                {{ form.estado }}
-                                {% if form.estado.errors %}
-                                    <div class="text-danger">{{ form.estado.errors }}</div>
-                                {% endif %}
+                        <div class="col-md-4">
+                            <label class="form-label">Pedido (Opcional)</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="pedido_display"
+                                    value="{% if object.pedido %}PED-{{ object.pedido.id }}{% endif %}"
+                                    readonly placeholder="Seleccionar pedido...">
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalPedidos">
+                                    Buscar
+                                </button>
                             </div>
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.folio.label_tag }}
+                            {{ form.folio }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.fecha.label_tag }}
+                            {{ form.fecha }}
                         </div>
                     </div>
 
-                    <h5 class="mt-4 mb-3">Detalles de la Orden</h5>
-                    {{ detalles.management_form }}
-
-                    <!-- Contenedor de líneas de detalle -->
+                    <h5 class="mt-4 mb-3">Detalles de la Factura</h5>
+                    {{ formset.management_form }}
                     <div id="detalles-container">
-                        {% for form in detalles %}
+                        {% for form in formset %}
                         <div class="detalle-row border p-3 mb-3 rounded">
                             {% for hidden in form.hidden_fields %}
                                 {{ hidden }}
                             {% endfor %}
                             {{ form.material }}
+
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-2">
                                     <label class="form-label">Material</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control material-nombre"
@@ -112,69 +103,120 @@
                                     {{ form.precio_unitario }}
                                 </div>
                                 <div class="col-md-2">
-                                    {{ form.subtotal.label_tag }}
-                                    {{ form.subtotal }}
+                                    {{ form.descuento.label_tag }}
+                                    <div class="input-group">
+                                        {{ form.descuento }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
                                 </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    {% if form.instance.pk %}
-                                        <div class="form-check">
-                                            {{ form.DELETE }}
-                                            <label class="form-check-label">Eliminar</label>
-                                        </div>
-                                    {% else %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
-                                    {% endif %}
+                                <div class="col-md-2">
+                                    {{ form.iva_porcentaje.label_tag }}
+                                    <div class="input-group">
+                                        {{ form.iva_porcentaje }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Total Línea</label>
+                                    <input type="text" class="form-control subtotal-display" readonly placeholder="0.00">
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
 
-                    <!-- Botón para agregar nueva línea -->
                     <button type="button" class="btn btn-outline-primary mb-3" id="add-line">
                         + Agregar línea
                     </button>
 
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-success">Guardar Orden</button>
-                        <a href="{% url 'compras:ordencompra_list' %}" class="btn btn-secondary">Cancelar</a>
-                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Factura</button>
+                    <a href="{% url 'ventas:factura_list' %}" class="btn btn-secondary">Cancelar</a>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Proveedores -->
-<div class="modal fade" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
+<!-- Modal Clientes -->
+<div class="modal fade" id="modalClientes" tabindex="-1" aria-labelledby="modalClientesLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalProveedoresLabel">Seleccionar Proveedor</h5>
+                <h5 class="modal-title" id="modalClientesLabel">Seleccionar Cliente</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="text" class="form-control mb-3" id="searchProveedor" placeholder="Buscar proveedor...">
+                <input type="text" class="form-control mb-3" id="searchCliente" placeholder="Buscar cliente...">
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th>Código</th>
                                 <th>Nombre</th>
-                                <th>RUC/NIT</th>
-                                <th>Teléfono</th>
+                                <th>RFC</th>
+                                <th>Ciudad</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
-                        <tbody id="proveedoresTableBody">
-                            {% for prov in proveedores %}
+                        <tbody id="clientesTableBody">
+                            {% for cli in clientes %}
                             <tr>
-                                <td>{{ prov.nombre }}</td>
-                                <td>{{ prov.identificacion }}</td>
-                                <td>{{ prov.telefono|default:"—" }}</td>
+                                <td>{{ cli.codigo }}</td>
+                                <td>{{ cli.nombre }}</td>
+                                <td>{{ cli.rfc }}</td>
+                                <td>{{ cli.ciudad }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary select-proveedor"
-                                        data-id="{{ prov.id }}"
-                                        data-nombre="{{ prov.nombre }} ({{ prov.identificacion }})">
+                                    <button class="btn btn-sm btn-primary select-cliente"
+                                        data-id="{{ cli.id }}"
+                                        data-nombre="{{ cli.nombre }} ({{ cli.codigo }})">
+                                        Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pedidos -->
+<div class="modal fade" id="modalPedidos" tabindex="-1" aria-labelledby="modalPedidosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPedidosLabel">Seleccionar Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="searchPedido" placeholder="Buscar pedido...">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidosTableBody">
+                            {% for ped in pedidos %}
+                            <tr>
+                                <td>PED-{{ ped.id }}</td>
+                                <td>{{ ped.cliente.nombre }}</td>
+                                <td>{{ ped.fecha|date:"d/m/Y" }}</td>
+                                <td>${{ ped.total|floatformat:2|intcomma }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary select-pedido"
+                                        data-id="{{ ped.id }}"
+                                        data-nombre="PED-{{ ped.id }}">
                                         Seleccionar
                                     </button>
                                 </td>
@@ -237,15 +279,14 @@
     </div>
 </div>
 
-<!-- Plantilla oculta para clonar nuevas líneas -->
-<!-- En ordencompra_form.html, dentro del empty-form -->
+<!-- Plantilla vacía para clonar nuevas líneas -->
 <div id="empty-form" style="display:none;">
     {% for hidden in empty_form.hidden_fields %}
         {{ hidden }}
     {% endfor %}
     {{ empty_form.material }}
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-2">
             <label class="form-label">Material</label>
             <div class="input-group">
                 <input type="text" class="form-control material-nombre"
@@ -264,10 +305,24 @@
             {{ empty_form.precio_unitario }}
         </div>
         <div class="col-md-2">
-            {{ empty_form.precio_con_iva.label_tag }}
-            {{ empty_form.precio_con_iva }}
+            {{ empty_form.descuento.label_tag }}
+            <div class="input-group">
+                {{ empty_form.descuento }}
+                <span class="input-group-text">%</span>
+            </div>
         </div>
-        <div class="col-md-2 d-flex align-items-end">
+        <div class="col-md-2">
+            {{ empty_form.iva_porcentaje.label_tag }}
+            <div class="input-group">
+                {{ empty_form.iva_porcentaje }}
+                <span class="input-group-text">%</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Total Línea</label>
+            <input type="text" class="form-control subtotal-display" readonly placeholder="0.00">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
             <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
         </div>
     </div>
@@ -275,10 +330,10 @@
 
 {% endblock %}
 
-<script>
-    window.materialesData = {{ materiales_data_json|safe }};
-</script>
-
 {% block extra_js %}
-<script src="{% static 'compras/js/ordencompra_form.js' %}"></script>
+<script>
+    // Pasar variables desde Django al JavaScript
+    window.formsetTotalForms = {{ formset.total_form_count }};
+</script>
+<script src="{% static 'ventas/js/factura_form.js' %}"></script>
 {% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Flujo de Caja Mensual - {{ mes }}</h2>
+    <form method="get">
+        <input type="month" name="mes" value="{{ mes|date:'Y-m' }}" class="form-control d-inline-block w-auto">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </form>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Resumen Mensual</h5>
+        <p><strong>Total Ingresos:</strong> ${{ total_ingresos|floatformat:2|intcomma }}</p>
+        <p><strong>Total Egresos:</strong> ${{ total_egresos|floatformat:2|intcomma }}</p>
+        <p><strong>Saldo Neto:</strong>
+            <span class="text-{% if saldo_neto >= 0 %}success{% else %}danger{% endif %}">
+                ${{ saldo_neto|floatformat:2|intcomma }}
+            </span>
+        </p>
+    </div>
+</div>
+
+<h5>Flujo por Días</h5>
+<table class="table table-sm table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Día</th>
+            <th>Ingresos</th>
+            <th>Egresos</th>
+            <th>Neto</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dia, datos in flujo_por_dia.items %}
+        <tr>
+            <td>{{ dia }}</td>
+            <td>${{ datos.ingresos|floatformat:2|intcomma }}</td>
+            <td>${{ datos.egresos|floatformat:2|intcomma }}</td>
+            <td>
+                <span class="text-{% if datos.neto >= 0 %}success{% else %}danger{% endif %}">
+                    ${{ datos.neto|floatformat:2|intcomma }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'ventas/base_ventas.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5>Confirmar Pedido</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Está seguro de que desea <strong>confirmar</strong> el pedido <strong>PED-{{ pedido.id }}</strong>?</p>
+
+                <div class="alert alert-info">
+                    <strong>Nota:</strong> Al confirmar este pedido:
+                    <ul>
+                        <li>Se bloqueará su edición</li>
+                        <li>Se habilitará la opción para <strong>surtirlo</strong></li>
+                        <li>Se actualizará el stock solo al surtirlo</li>
+                    </ul>
+                </div>
+
+                <h6>Detalles del pedido:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Cantidad Solicitada</th>
+                                <th>Precio Unitario</th>
+                                <th>Descuento</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in pedido.detalles.all %}
+                            <tr>
+                                <td>{{ detalle.material }}</td>
+                                <td>{{ detalle.cantidad_solicitada }}</td>
+                                <td>${{ detalle.precio_unitario|floatformat:2|intcomma }}</td>
+                                <td>{{ detalle.descuento }}%</td>
+                                <td>${{ detalle.subtotal|floatformat:2|intcomma }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Total:</th>
+                                <th>${{ pedido.total|floatformat:2|intcomma }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Confirmar Pedido</button>
+                    <a href="{% url 'ventas:pedido_detail' pedido.pk %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

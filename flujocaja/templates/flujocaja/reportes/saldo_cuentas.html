@@ -1,0 +1,42 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Saldos por Cuenta Bancaria</h2>
+    <a href="{% url 'flujocaja:reporte_saldo_cuentas' %}" class="btn btn-outline-secondary">Refrescar</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+            <tr>
+                <th>Banco</th>
+                <th>Número de Cuenta</th>
+                <th>CLABE</th>
+                <th>Tipo</th>
+                <th>Moneda</th>
+                <th>Saldo Actual</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cuenta in cuentas %}
+            <tr>
+                <td>{{ cuenta.banco.nombre }}</td>
+                <td>{{ cuenta.numero_cuenta }}</td>
+                <td>{{ cuenta.clabe|default:"—" }}</td>
+                <td>{{ cuenta.get_tipo_cuenta_display }}</td>
+                <td>{{ cuenta.get_moneda_display }}</td>
+                <td>${{ cuenta.saldo_actual|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-dark">
+                <th colspan="5" class="text-end">Total General:</th>
+                <th>${{ total_general|floatformat:2|intcomma }}</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

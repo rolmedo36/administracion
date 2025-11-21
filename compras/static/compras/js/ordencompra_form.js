@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('id_detalles-TOTAL_FORMS').value = formCount;
     }
 
+    // === Función para crear una nueva línea ===
     function addNewLine() {
         if (!emptyFormContainer) {
             console.error("No se encontró el contenedor #empty-form");
@@ -70,30 +71,29 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // Limpiar campos
-        newRow.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
-            if (!input.hasAttribute('readonly')) {
-                input.value = '';
-            }
-        });
+        // FORZAR VALORES POR DEFECTO
+        const precioUnitarioInput = newRow.querySelector('.precio-unitario-input');
+        if (precioUnitarioInput) {
+            precioUnitarioInput.value = '0.00';
+        }
+
+        const cantidadInput = newRow.querySelector('.cantidad-input');
+        if (cantidadInput) {
+            cantidadInput.value = '1.00';
+        }
+
         const precioConIvaInput = newRow.querySelector('.precio-con-iva');
-        if (precioConIvaInput) precioConIvaInput.value = '0.00';
-        const materialSelect = newRow.querySelector('select[name$="material"]');
-        if (materialSelect) materialSelect.value = '';
-        const aplicaIvaInput = newRow.querySelector('input[name$="aplica_iva"]');
-        if (aplicaIvaInput) aplicaIvaInput.value = 'false';
+        if (precioConIvaInput) {
+            precioConIvaInput.value = '0.00';
+        }
 
         // Configurar eventos de cálculo
-        const precioBaseInput = newRow.querySelector('.precio-base');
-        if (precioBaseInput) {
-            precioBaseInput.addEventListener('input', function() {
+        if (precioUnitarioInput && cantidadInput) {
+            precioUnitarioInput.addEventListener('input', function() {
                 calcularPrecios(newRow);
             });
-        }
-        const cantidadInput = newRow.querySelector('input[name$="cantidad"]');
-        if (cantidadInput) {
             cantidadInput.addEventListener('input', function() {
-                calcularSubtotal(newRow);
+                calcularPrecios(newRow);
             });
         }
 

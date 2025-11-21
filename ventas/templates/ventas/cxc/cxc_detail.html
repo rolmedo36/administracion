@@ -1,16 +1,12 @@
-<!-- compras/templates/compras/cxp_detail.html -->
-{% extends 'compras/base_compras.html' %}
+{% extends 'ventas/base_ventas.html' %}
 {% load humanize %}
-
-{% block title %}CXP {{ cxp.referencia }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Cuenta por Pagar <span class="text-primary">{{ cxp.referencia }}</span></h2>
-    <a href="{% url 'compras:ordencompra_detail' cxp.orden_compra.id %}" class="btn btn-outline-secondary">Ver Orden</a>
+    <h2>Cuenta por Cobrar <span class="text-info">{{ cxc.factura.folio }}</span></h2>
+    <a href="{% url 'ventas:cxc_list' %}" class="btn btn-secondary">Volver</a>
 </div>
 
-<!-- Datos principales -->
 <div class="card mb-4">
     <div class="card-header bg-light">
         <h5 class="mb-0">Información General</h5>
@@ -18,56 +14,46 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-4">
-                <p><strong>Proveedor:</strong><br> {{ cxp.proveedor }}</p>
+                <p><strong>Cliente:</strong><br> {{ cxc.cliente.nombre }}</p>
             </div>
             <div class="col-md-4">
-                <p><strong>Monto Total:</strong><br> ${{ cxp.monto_total|floatformat:2|intcomma }}</p>
+                <p><strong>Factura:</strong><br> {{ cxc.factura.folio }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Fecha Vencimiento:</strong><br> {{ cxc.fecha_vencimiento|date:"d/m/Y" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Monto Total:</strong><br> ${{ cxc.monto_total|floatformat:2|intcomma }}</p>
             </div>
             <div class="col-md-4">
                 <p><strong>Saldo Pendiente:</strong><br>
-                    <span class="text-{% if cxp.saldo_pendiente <= 0 %}success{% else %}danger{% endif %}">
-                        ${{ cxp.saldo_pendiente|floatformat:2|intcomma }}
+                    <span class="text-{% if cxc.saldo_pendiente <= 0 %}success{% else %}danger{% endif %}">
+                        ${{ cxc.saldo_pendiente|floatformat:2|intcomma }}
                     </span>
                 </p>
             </div>
             <div class="col-md-4">
                 <p><strong>Estado:</strong><br>
-                    <span class="badge bg-{% if cxp.estado == 'pagado' %}success{% else %}warning{% endif %}">
-                        {{ cxp.get_estado_display }}
+                    <span class="badge bg-{% if cxc.estado == 'pagado' %}success{% elif cxc.estado == 'parcial' %}warning{% else %}danger{% endif %}">
+                        {{ cxc.get_estado_display }}
                     </span>
                 </p>
-            </div>
-            <div class="col-md-4">
-                <p><strong>Fecha Emisión:</strong><br> {{ cxp.fecha_emision|date:"d/m/Y" }}</p>
-            </div>
-            <div class="col-md-4">
-                <p><strong>Vencimiento:</strong><br> {{ cxp.fecha_vencimiento|date:"d/m/Y" }}</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Botón de pago (si hay saldo) -->
-{% if cxp.saldo_pendiente > 0 and perms.compras.add_pagocuentaporpagar %}
-<div class="mb-4">
-    <a href="{% url 'compras:registrar_pago_cxp' cxp.id %}" class="btn btn-success">
-        💰 Registrar Pago
-    </a>
-</div>
-{% endif %}
-
-<!-- Historial de pagos -->
 <div class="card">
     <div class="card-header bg-light">
         <h5 class="mb-0">Historial de Pagos</h5>
     </div>
     <div class="card-body">
-        {% if cxp.pagos.exists %}
+        {% if cxc.pagos.exists %}
         <div class="table-responsive">
             <table class="table table-bordered">
                 <thead class="table-light">
                     <tr>
-                        <th>Fecha</th>
+                        <th>Fecha Pago</th>
                         <th>Monto</th>
                         <th>Cuenta Bancaria</th>
                         <th>Referencia</th>
@@ -75,7 +61,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for pago in cxp.pagos.all %}
+                    {% for pago in cxc.pagos.all %}
                     <tr>
                         <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
                         <td>${{ pago.monto|floatformat:2|intcomma }}</td>
@@ -101,15 +87,15 @@
                 </tfoot>
             </table>
         </div>
-        <div class="mt-4">
-            {% if cxp.saldo_pendiente > 0 %}
-                <a href="{% url 'compras:registrar_pago_cxp' cxp.id %}" class="btn btn-success">✅ Pagar Factura</a>
-            {% endif %}
-            <a href="{% url 'compras:reporte_cxp' %}" class="btn btn-secondary">Volver a CxC</a>
-        </div>
         {% else %}
-        <p class="text-muted">No se han registrado pagos.</p>
+        <p class="text-muted">No se han registrado pagos para esta cuenta.</p>
         {% endif %}
     </div>
+</div>
+
+<div class="mt-4">
+    {% if cxc.saldo_pendiente > 0 %}
+        <a href="{% url 'ventas:registrar_pago_cxc' cxc.id %}" class="btn btn-success">Registrar Pago</a>
+    {% endif %}
 </div>
 {% endblock %}

@@ -2,6 +2,7 @@ from django import forms
 from django.forms import inlineformset_factory
 from .models import Proveedor, OrdenCompra, DetalleOrdenCompra, CuentaPorPagar, PagoCuentaPorPagar
 from materiales.models import Almacen
+from flujocaja.models import CuentaBancaria
 
 class ProveedorForm(forms.ModelForm):
     class Meta:
@@ -66,9 +67,14 @@ class DetalleOrdenCompraForm(forms.ModelForm):
                 'min': '0.01'
             }),
             'precio_unitario': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0.01'
+                'class': 'form-control precio-unitario-input',
+                'step': '1',
+                'min': '1'
+            }),
+            'precio_con_iva': forms.NumberInput(attrs={
+                'class': 'form-control precio-con-iva',
+                'step': '1',
+                'readonly': 'readonly'
             }),
             'aplica_iva': forms.HiddenInput(),
         }
@@ -124,9 +130,15 @@ class RecepcionOrdenForm(forms.Form):
 
 # CXP
 class PagoCuentaPorPagarForm(forms.ModelForm):
+    cuenta_bancaria = forms.ModelChoiceField(
+        queryset=CuentaBancaria.objects.filter(activo=True),
+        label="Cuenta Bancaria",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = PagoCuentaPorPagar
-        fields = ['monto', 'fecha_pago', 'referencia']
+        fields = ['monto', 'fecha_pago', 'referencia', 'cuenta_bancaria']
         widgets = {
             'monto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
             'fecha_pago': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),

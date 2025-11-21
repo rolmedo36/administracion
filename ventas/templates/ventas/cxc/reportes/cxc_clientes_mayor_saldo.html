@@ -1,0 +1,97 @@
+{% extends 'ventas/base_ventas.html' %}
+{% load humanize %}
+{% load math_extras %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Clientes con Mayor Saldo Pendiente</h2>
+    <a href="{% url 'ventas:reporte_cxc_clientes_mayor_saldo' %}" class="btn btn-outline-secondary">Refrescar</a>
+</div>
+
+<div class="alert alert-info">
+    <p><strong>Total General de Saldos Pendientes:</strong> ${{ total_general|floatformat:2|intcomma }}</p>
+    <p><strong>Total de Clientes con Saldos Pendientes:</strong> {{ clientes_saldo.count }}</p>
+</div>
+
+{% if clientes_saldo %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+            <tr>
+                <th>Ranking</th>
+                <th>Cliente</th>
+                <th>Saldo Total Pendiente</th>
+                <th>% del Total</th>
+                <th>Facturas Pendientes</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes_saldo %}
+            <tr>
+                <td>
+                    <span class="badge bg-{% cycle 'primary' 'secondary' 'success' 'danger' 'warning' 'info' %}">
+                        #{{ forloop.counter }}
+                    </span>
+                </td>
+                <td>
+                    <strong>{{ cliente.nombre }}</strong><br>
+                    <small class="text-muted">{{ cliente.codigo }}</small>
+                </td>
+                <td>
+                    <strong>${{ cliente.saldo_total|floatformat:2|intcomma }}</strong>
+                </td>
+                <td>
+                    {% if total_general > 0 %}
+                        <span class="text-{% if cliente.saldo_total > total_general|divide:4 %}danger{% elif cliente.saldo_total > total_general|divide:10 %}warning{% else %}success{% endif %}">
+                            {{ cliente.saldo_total|divide:total_general|multiply:100|floatformat:2 }}%
+                        </span>
+                    {% else %}
+                        0.00%
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge bg-secondary">
+                        {{ cliente.facturas_pendientes }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'ventas:cxc_list' %}?cliente={{ cliente.id }}" class="btn btn-sm btn-info">Ver CxC</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-light">
+                <th colspan="2" class="text-end">Total General:</th>
+                <th>${{ total_general|floatformat:2|intcomma }}</th>
+                <th>100%</th>
+                <th>{{ clientes_saldo.count }} clientes</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<!-- Gráfico de barras opcional -->
+<div class="mt-4">
+    <h5>Top 10 Clientes por Saldo</h5>
+    <div class="progress" style="height: 20px;">
+        {% for cliente in clientes_saldo|slice:":10" %}
+        <div class="progress-bar"
+             role="progressbar"
+             style="width: {{ cliente.saldo_total|divide:total_general|multiply:100|floatformat:2 }}%"
+             aria-valuenow="{{ cliente.saldo_total|divide:total_general|multiply:100|floatformat:2 }}"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             title="{{ cliente.nombre }}: ${{ cliente.saldo_total|floatformat:2|intcomma }}">
+            {{ cliente.nombre|truncatechars:10 }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-info">No hay clientes con saldos pendientes.</div>
+{% endif %}
+{% endblock %}

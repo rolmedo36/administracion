@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from clientes.models import Cliente
 from materiales.models import Material, Almacen
+from flujocaja.models import CuentaBancaria
 
 # Choices
 ESTADO_COTIZACION_CHOICES = [
@@ -100,7 +101,7 @@ class FacturaVenta(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT)
     pedido = models.ForeignKey(PedidoVenta, on_delete=models.SET_NULL, null=True, blank=True)
     folio = models.CharField(max_length=50, unique=True)
-    fecha = models.DateField(auto_now_add=True)
+    fecha = models.DateField()
     subtotal = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     iva = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
@@ -161,21 +162,27 @@ class CuentaPorCobrar(models.Model):
             self.estado = 'pendiente'
         super().save(*args, **kwargs)
 
-
 class PagoCuentaPorCobrar(models.Model):
-    cuenta_por_cobrar = models.ForeignKey(CuentaPorCobrar, on_delete=models.CASCADE, related_name='pagos')
+    cuenta_por_cobrar = models.ForeignKey('CuentaPorCobrar', on_delete=models.CASCADE, related_name='pagos')
     monto = models.DecimalField(max_digits=14, decimal_places=2)
     fecha_pago = models.DateField()
     referencia = models.CharField(max_length=100, blank=True)
+
+    cuenta_bancaria = models.ForeignKey(
+        'flujocaja.CuentaBancaria',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Cuenta Bancaria"
+    )
+
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # Actualizar saldo de la CxC
-        cxc = self.cuenta_por_cobrar
-        total_pagado = cxc.pagos.aggregate(total=models.Sum('monto'))['total'] or 0
-        cxc.saldo_pendiente = cxc.monto_total - total_pagado
-        if cxc.saldo_pendiente < 0:
-            cxc.saldo_pendiente = 0
-        cxc.save()
+    class Meta:
+        verbose_name = "Pago de Cuenta por Cobrar"
+        verbose_name_plural = "Pagos de Cuentas por Cobrar"
+        ordering = ['-fecha_pago']
+
+    def __str__(self):
+        return f"Pago de ${self.monto} - {self.cuenta_por_cobrar.factura.folio}"

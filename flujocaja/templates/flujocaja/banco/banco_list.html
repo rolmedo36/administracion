@@ -1,0 +1,43 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Bancos</h2>
+    <a href="{% url 'flujocaja:banco_create' %}" class="btn btn-success">+ Nuevo Banco</a>
+</div>
+
+{% if bancos %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>País</th>
+                <th>SWIFT</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for banco in bancos %}
+            <tr>
+                <td>{{ banco.codigo }}</td>
+                <td>{{ banco.nombre }}</td>
+                <td>{{ banco.pais }}</td>
+                <td>{{ banco.swift|default:"—" }}</td>
+                <td>{% if banco.activo %}✅{% else %}❌{% endif %}</td>
+                <td>
+                    <a href="{% url 'flujocaja:banco_update' banco.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'flujocaja:banco_delete' banco.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay bancos registrados.</div>
+{% endif %}
+{% endblock %}

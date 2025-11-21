@@ -1,0 +1,48 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Movimientos Bancarios</h2>
+    <a href="{% url 'flujocaja:movimiento_create' %}" class="btn btn-success">+ Nuevo Movimiento</a>
+</div>
+
+{% if movimientos %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-info">
+            <tr>
+                <th>Fecha</th>
+                <th>Cuenta</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Referencia</th>
+                <th>Documento</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mov in movimientos %}
+            <tr class="{% if mov.tipo_movimiento == 'egreso' %}table-danger{% else %}table-success{% endif %}">
+                <td>{{ mov.fecha|date:"d/m/Y" }}</td>
+                <td>{{ mov.cuenta_bancaria.numero_cuenta }}<br><small class="text-muted">{{ mov.cuenta_bancaria.banco.nombre }}</small></td>
+                <td>{{ mov.get_tipo_movimiento_display }}</td>
+                <td>${{ mov.monto|floatformat:2|intcomma }}</td>
+                <td>{{ mov.descripcion|truncatechars:60 }}</td>
+                <td>{{ mov.referencia|default:"—" }}</td>
+                <td>{{ mov.documento_numero|default:"—" }}</td>
+                <td>
+                    <span class="badge bg-{% if mov.estado == 'registrado' %}warning{% elif mov.estado == 'conciliado' %}success{% else %}danger{% endif %}">
+                        {{ mov.get_estado_display }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay movimientos registrados.</div>
+{% endif %}
+{% endblock %}

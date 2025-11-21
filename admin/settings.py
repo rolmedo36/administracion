@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'creditos',
     'clientes',
     'ventas',
+    'flujocaja'
 ]
 
 MIDDLEWARE = [

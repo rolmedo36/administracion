@@ -16,6 +16,11 @@
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
+                        {{ form.cuenta_bancaria.label_tag }}
+                        {{ form.cuenta_bancaria }}
+                        {% if form.cuenta_bancaria.errors %}<div class="text-danger">{{ form.cuenta_bancaria.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
                         {{ form.monto.label_tag }}
                         {{ form.monto }}
                         {% if form.monto.errors %}<div class="text-danger">{{ form.monto.errors }}</div>{% endif %}

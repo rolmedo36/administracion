@@ -1,0 +1,112 @@
+{% extends 'ventas/base_ventas.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Reporte de Antigüedad de Saldos (Aging)</h2>
+    <a href="{% url 'ventas:reporte_cxc_aging' %}" class="btn btn-outline-secondary">Refrescar</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h5>90+ Días</h5>
+                <h3>${{ total_90_mas|floatformat:2|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h5>61-90 Días</h5>
+                <h3>${{ total_61_90|floatformat:2|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h5>31-60 Días</h5>
+                <h3>${{ total_31_60|floatformat:2|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h5>1-30 Días</h5>
+                <h3>${{ total_1_30|floatformat:2|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <strong>Total General:</strong> ${{ total_general|floatformat:2|intcomma }}
+</div>
+
+<!-- Tabla detallada -->
+{% if rango_1_30 or rango_31_60 or rango_61_90 or rango_90_mas %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Rango</th>
+                <th>Factura</th>
+                <th>Cliente</th>
+                <th>Vencimiento</th>
+                <th>Saldo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cxc in rango_90_mas %}
+            <tr class="table-danger">
+                <td>90+ días</td>
+                <td>{{ cxc.factura.folio }}</td>
+                <td>{{ cxc.cliente.nombre }}</td>
+                <td>{{ cxc.fecha_vencimiento|date:"d/m/Y" }}</td>
+                <td>${{ cxc.saldo_pendiente|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+
+            {% for cxc in rango_61_90 %}
+            <tr class="table-warning">
+                <td>61-90 días</td>
+                <td>{{ cxc.factura.folio }}</td>
+                <td>{{ cxc.cliente.nombre }}</td>
+                <td>{{ cxc.fecha_vencimiento|date:"d/m/Y" }}</td>
+                <td>${{ cxc.saldo_pendiente|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+
+            {% for cxc in rango_31_60 %}
+            <tr class="table-info">
+                <td>31-60 días</td>
+                <td>{{ cxc.factura.folio }}</td>
+                <td>{{ cxc.cliente.nombre }}</td>
+                <td>{{ cxc.fecha_vencimiento|date:"d/m/Y" }}</td>
+                <td>${{ cxc.saldo_pendiente|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+
+            {% for cxc in rango_1_30 %}
+            <tr class="table-success">
+                <td>1-30 días</td>
+                <td>{{ cxc.factura.folio }}</td>
+                <td>{{ cxc.cliente.nombre }}</td>
+                <td>{{ cxc.fecha_vencimiento|date:"d/m/Y" }}</td>
+                <td>${{ cxc.saldo_pendiente|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-light">
+                <th colspan="4" class="text-end">Total:</th>
+                <th>${{ total_general|floatformat:2|intcomma }}</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

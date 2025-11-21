@@ -1,0 +1,59 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4>Nuevo Movimiento Bancario</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.cuenta_bancaria.label_tag }}
+                            {{ form.cuenta_bancaria }}
+                            {% if form.cuenta_bancaria.errors %}<div class="text-danger">{{ form.cuenta_bancaria.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.tipo_movimiento.label_tag }}
+                            {{ form.tipo_movimiento }}
+                            {% if form.tipo_movimiento.errors %}<div class="text-danger">{{ form.tipo_movimiento.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.monto.label_tag }}
+                            {{ form.monto }}
+                            {% if form.monto.errors %}<div class="text-danger">{{ form.monto.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.fecha.label_tag }}
+                            {{ form.fecha }}
+                            {% if form.fecha.errors %}<div class="text-danger">{{ form.fecha.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}<div class="text-danger">{{ form.descripcion.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.referencia.label_tag }}
+                            {{ form.referencia }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.tipo_documento.label_tag }}
+                            {{ form.tipo_documento }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form.documento_numero.label_tag }}
+                            {{ form.documento_numero }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-info">Registrar Movimiento</button>
+                    <a href="{% url 'flujocaja:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

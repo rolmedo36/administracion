@@ -1,0 +1,47 @@
+{% extends 'flujocaja/base_flujocaja.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Cuentas Bancarias</h2>
+    <a href="{% url 'flujocaja:cuentabancaria_create' %}" class="btn btn-success">+ Nueva Cuenta</a>
+</div>
+
+{% if cuentas %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-success">
+            <tr>
+                <th>Banco</th>
+                <th>Número de Cuenta</th>
+                <th>CLABE</th>
+                <th>Tipo</th>
+                <th>Moneda</th>
+                <th>Saldo</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cuenta in cuentas %}
+            <tr>
+                <td>{{ cuenta.banco.nombre }}</td>
+                <td>{{ cuenta.numero_cuenta }}</td>
+                <td>{{ cuenta.clabe|default:"—" }}</td>
+                <td>{{ cuenta.get_tipo_cuenta_display }}</td>
+                <td>{{ cuenta.get_moneda_display }}</td>
+                <td>${{ cuenta.saldo_actual|floatformat:2|intcomma }}</td>
+                <td>{% if cuenta.activo %}✅{% else %}❌{% endif %}</td>
+                <td>
+                    <a href="{% url 'flujocaja:cuentabancaria_update' cuenta.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'flujocaja:cuentabancaria_delete' cuenta.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay cuentas bancarias registradas.</div>
+{% endif %}
+{% endblock %}
