@@ -1,33 +1,151 @@
-<!-- core/templates/core/dashboard.html -->
-{% extends 'base.html' %}
+<!-- {% extends 'base.html' %} -->
+{% load static %}
 
-{% block title %}Menú Principal - Sistema Integral{% endblock %}
+{% block title %}Dashboard - NCP SOFTWARE{% endblock %}
 
 {% block content %}
-<div class="text-center mb-5">
-    <h2>Módulos Principales</h2>
-</div>
-<div class="row g-4 justify-content-center">
-    <div class="col-md-4">
-        <a href="{% url 'materiales:material_index' %}" class="btn btn-primary btn-lg w-100 py-4 fs-4">Materiales</a>
-    </div>
-    <div class="col-md-4">
-        <a href="#" class="btn btn-success btn-lg w-100 py-4 fs-4">Ventas</a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'compras:compras_index' %}" class="btn btn-info btn-lg w-100 py-4 fs-4">Compras</a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'creditos:credito_index' %}" class="btn btn-info btn-lg w-100 py-4 fs-4">Créditos</a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'clientes:cliente_index' %}" class="btn btn-info btn-lg w-100 py-4 fs-4">Ventas</a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary btn-lg w-100 py-4 fs-4">Usuarios</a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'flujocaja:banco_list' %}" class="btn btn-outline-info btn-lg w-100 py-4 fs-4">Flujos de Caja</a>
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1001;">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold">Sistema Integral</span>
+            <div class="ms-auto">
+                <span class="me-3 text-white">Hola, <strong>{{ request.user.username }}</strong></span>
+                <a href="{% url 'accounts:logout' %}" class="text-white text-decoration-none">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-md-2 bg-white text-white vh-100 position-fixed" style="left: 0; top: 58px; z-index: 1000;">
+            <div class="d-flex align-items-center p-3 border-bottom">
+                <!-- Logo de la empresa -->
+                <img src="{% static 'core/img/logo.png' %}" alt="NCP SOFTWARE" class="img-fluid me-2" width="150">
+                <!-- <span class="h6 mb-0">NCP SOFTWARE</span> -->
+            </div>
+
+            <nav class="nav flex-column mt-4">
+                <!-- Finanzas -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link text-dark d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1v-1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h4v1z"/>
+                            <path d="M8 7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4z"/>
+                        </svg>
+                        Finanzas
+                    </a>
+                    <ul class="dropdown-menu bg-dark border-0 mt-2">
+                        <li><a class="dropdown-item text-white" href="#">Cuentas por Pagar</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'compras:proveedor_list' %}">Proveedores</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'compras:ordencompra_list' %}">Órdenes de Compra</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'compras:ordenes_por_recibir' %}">Recepción</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'compras:reporte_cxp' %}">Reportes CXP</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'clientes:cliente_list' %}">Cuentas por Cobrar</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'ventas:cotizacion_list' %}">Cotizaciones</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'ventas:pedido_list' %}">Pedidos</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'ventas:factura_list' %}">Facturas</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'ventas:reporte_cxc_saldos' %}">Reportes CXC</a></li>
+                    </ul>
+                </div>
+
+                <!-- Tesorería -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link text-dark d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1v-1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h4v1z"/>
+                            <path d="M8 7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4z"/>
+                        </svg>
+                        Tesorería
+                    </a>
+                    <ul class="dropdown-menu bg-dark border-0 mt-2">
+                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:banco_list' %}">Flujo de Caja</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:banco_list' %}">Bancos</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:cuentabancaria_list' %}">Cuentas bancarias</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:reporte_flujo_diario' %}">Flujo diario</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:reporte_flujo_mensual' %}">Flujo mensual</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:reporte_saldo_cuentas' %}">Saldos por cuenta</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-white" href="#">Créditos</a></li>
+                        <li><a class="dropdown-item text-white" href="#">Reportes</a></li>
+                    </ul>
+                </div>
+
+                <!-- Materiales -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link text-dark d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1v-1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h4v1z"/>
+                            <path d="M8 7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4z"/>
+                        </svg>
+                        Materiales
+                    </a>
+                    <ul class="dropdown-menu bg-dark border-0 mt-2">
+                        <li><a class="dropdown-item text-white" href="{% url 'materiales:material_list' %}">Productos</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'materiales:categoria_list' %}">Categorías</a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'materiales:almacen_list' %}">Almacenes</a></li>
+                        <li><a class="dropdown-item text-white" href="#">Reporte de existencias</a></li>
+                    </ul>
+                </div>
+
+                <!-- Configuración -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link text-dark d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1v-1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h4v1z"/>
+                            <path d="M8 7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4z"/>
+                        </svg>
+                        Configuración
+                    </a>
+                    <ul class="dropdown-menu bg-dark border-0 mt-2">
+                        <li><a class="dropdown-item text-white" href="{% url 'accounts:user_list' %}">Usuarios</a></li>
+                        <li><a class="dropdown-item text-white" href="#">Empresa</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 ms-auto" style="margin-left: 16.666667%; padding-top: 56px;">
+            <div class="p-4">
+                <h1 class="display-4">Dashboard</h1>
+                <p class="lead">Bienvenido al sistema de gestión empresarial.</p>
+
+                <!-- Contenido principal aquí -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Resumen Financiero</h5>
+                                <p>Ver reportes de CXP y CXC</p>
+                                <a href="{% url 'compras:reporte_cxp' %}" class="btn btn-primary">Ir a Finanzas</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Tesorería</h5>
+                                <p>Controla tus flujos de efectivo</p>
+                                <a href="{% url 'flujocaja:reporte_flujo_diario' %}" class="btn btn-success">Ir a Tesorería</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Materiales</h5>
+                                <p>Gestiona tus productos y existencias</p>
+                                <a href="{% url 'materiales:material_list' %}" class="btn btn-info">Ir a Materiales</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
