@@ -1,0 +1,68 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Prospecto <span class="text-primary">{{ prospecto.nombre }}</span></h2>
+    <div>
+        <a href="{% url 'crm:prospecto_update' prospecto.pk %}" class="btn btn-warning">Editar</a>
+        <a href="{% url 'crm:prospecto_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{ prospecto.nombre }}</p>
+                <p><strong>Empresa:</strong> {{ prospecto.empresa|default:"—" }}</p>
+                <p><strong>Email:</strong> {{ prospecto.email|default:"—" }}</p>
+                <p><strong>Teléfono:</strong> {{ prospecto.telefono|default:"—" }}</p>
+                <p><strong>Cargo:</strong> {{ prospecto.cargo|default:"—" }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Seguimiento</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Origen:</strong> {{ prospecto.get_origen_display }}</p>
+                <p><strong>Estado:</strong>
+                    <span class="badge bg-{% if prospecto.estado == 'nuevo' %}secondary{% elif prospecto.estado == 'contactado' %}info{% elif prospecto.estado == 'calificado' %}success{% else %}danger{% endif %}">
+                        {{ prospecto.get_estado_display }}
+                    </span>
+                </p>
+                <p><strong>Próximo Contacto:</strong>
+                    {% if prospecto.fecha_proximo_contacto %}
+                        {{ prospecto.fecha_proximo_contacto|date:"d/m/Y H:i" }}
+                    {% else %}
+                        <span class="text-muted">No programado</span>
+                    {% endif %}
+                </p>
+                <p><strong>Asignado a:</strong> {{ prospecto.asignado_a.username|default:"Sin asignar" }}</p>
+                <p><strong>Creado por:</strong> {{ prospecto.creado_por.username }}</p>
+                <p><strong>Fecha de Creación:</strong> {{ prospecto.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Notas</h5>
+            </div>
+            <div class="card-body">
+                {% if prospecto.notas %}
+                    <p>{{ prospecto.notas|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">Sin notas.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

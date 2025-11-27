@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración de Empresa{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4>Configuración de Empresa</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.razon_social.label_tag }}
+                            {{ form.razon_social }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.nombre_comercial.label_tag }}
+                            {{ form.nombre_comercial }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.rfc.label_tag }}
+                            {{ form.rfc }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.logo.label_tag }}
+                            {{ form.logo }}
+                        </div>
+
+                        <h5 class="mt-4 mb-3">Domicilio Fiscal</h5>
+                        <div class="col-md-8 mb-3">
+                            {{ form.domicilio_calle.label_tag }}
+                            {{ form.domicilio_calle }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.domicilio_numero.label_tag }}
+                            {{ form.domicilio_numero }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.domicilio_colonia.label_tag }}
+                            {{ form.domicilio_colonia }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.domicilio_ciudad.label_tag }}
+                            {{ form.domicilio_ciudad }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.domicilio_estado.label_tag }}
+                            {{ form.domicilio_estado }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.domicilio_pais.label_tag }}
+                            {{ form.domicilio_pais }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.domicilio_cp.label_tag }}
+                            {{ form.domicilio_cp }}
+                        </div>
+
+                        <h5 class="mt-4 mb-3">Contacto</h5>
+                        <div class="col-md-6 mb-3">
+                            {{ form.telefono.label_tag }}
+                            {{ form.telefono }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.email.label_tag }}
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-info">Guardar Configuración</button>
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,6 +8,9 @@ from django.db.models import Sum, Q
 from datetime import date, timedelta
 from collections import defaultdict
 
+@login_required
+def flujocaja_index(request):
+    return render(request, 'flujocaja/flujocaja_index.html', {'titulo': "Flujo Caja"})
 
 # --- BANCOS ---
 @login_required

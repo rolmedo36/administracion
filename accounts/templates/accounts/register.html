@@ -1,0 +1,38 @@
+<!-- accounts/templates/accounts/register.html -->
+{% extends 'base.html' %}
+
+{% block title %}Crear Cuenta{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>Crear Cuenta</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                        {% if form.username.errors %}<div class="text-danger">{{ form.username.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password1.label_tag }}
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<div class="text-danger">{{ form.password1.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password2.label_tag }}
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<div class="text-danger">{{ form.password2.errors }}</div>{% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-success">Crear Cuenta</button>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-link">Iniciar Sesión</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

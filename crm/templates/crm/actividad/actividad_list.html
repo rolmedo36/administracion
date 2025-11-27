@@ -1,0 +1,100 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Actividades</h2>
+    <a href="{% url 'crm:actividad_create' %}" class="btn btn-primary">+ Nueva Actividad</a>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4 g-2">
+    <div class="col-md-3">
+        <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="tipo">
+            <option value="">Todos los tipos</option>
+            {% for value, label in tipos %}
+            <option value="{{ value }}" {% if tipo_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="estado">
+            <option value="">Todos los estados</option>
+            <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="completada" {% if estado_filtro == 'completada' %}selected{% endif %}>Completada</option>
+            <option value="cancelada" {% if estado_filtro == 'cancelada' %}selected{% endif %}>Cancelada</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="relacionado">
+            <option value="">Todos los usuarios</option>
+            {% for user in usuarios %}
+            <option value="{{ user.id }}" {% if relacionado_filtro == user.id|stringformat:"i" %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</div>
+
+{% if actividades %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-info">
+            <tr>
+                <th>Tipo</th>
+                <th>Asunto</th>
+                <th>Relacionado con</th>
+                <th>Fecha y Hora</th>
+                <th>Estado</th>
+                <th>Asignado a</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for act in actividades %}
+            <tr class="{% if act.estado == 'pendiente' and act.fecha_hora|date:'U' < now|date:'U' %}table-warning{% elif act.estado == 'completada' %}table-success{% endif %}">
+                <td>
+                    <span class="badge bg-{% if act.tipo == 'llamada' %}info{% elif act.tipo == 'email' %}primary{% elif act.tipo == 'reunion' %}warning{% elif act.tipo == 'tarea' %}secondary{% else %}light{% endif %}">
+                        {{ act.get_tipo_display }}
+                    </span>
+                </td>
+                <td>{{ act.asunto }}</td>
+                <td>
+                    {% if act.prospecto %}
+                        <span class="badge bg-primary">Prospecto</span> {{ act.prospecto.nombre }}
+                    {% elif act.oportunidad %}
+                        <span class="badge bg-success">Oportunidad</span> {{ act.oportunidad.nombre }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ act.fecha_hora|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <span class="badge bg-{% if act.estado == 'pendiente' %}warning{% elif act.estado == 'completada' %}success{% else %}danger{% endif %}">
+                        {{ act.get_estado_display }}
+                    </span>
+                    {% if act.estado == 'pendiente' and act.fecha_hora|date:'U' < now|date:'U' %}
+                        <span class="badge bg-danger">Vencida</span>
+                    {% endif %}
+                </td>
+                <td>{{ act.relacionado_con.username }}</td>
+                <td>
+                    <a href="{% url 'crm:actividad_detail' act.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    {% if act.estado == 'pendiente' %}
+                        <a href="{% url 'crm:completar_actividad' act.pk %}" class="btn btn-sm btn-success">Completar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay actividades que coincidan con los criterios de búsqueda.</div>
+{% endif %}
+{% endblock %}

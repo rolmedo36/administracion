@@ -108,6 +108,18 @@ class FacturaVenta(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADO_FACTURA_CHOICES, default='activa')
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # Campos para timbrado
+    uuid = models.CharField(max_length=50, blank=True, null=True)
+    folio_fiscal = models.CharField(max_length=50, blank=True, null=True)
+    cadena_original = models.TextField(blank=True, null=True)
+    fecha_timbrado = models.DateTimeField(blank=True, null=True)
+    xml_timbrado = models.TextField(blank=True, null=True)
+    pdf_timbrado = models.TextField(blank=True, null=True)
+    estado = models.CharField(max_length=20, choices=[
+        ('activa', 'Activa'),
+        ('timbrada', 'Timbrada'),
+        ('cancelada', 'Cancelada'),
+    ], default='activa')
 
     class Meta:
         verbose_name = "Factura de Venta"

@@ -1,0 +1,97 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Pipeline de Ventas</h2>
+    <a href="{% url 'crm:reporte_pipeline_ventas' %}" class="btn btn-outline-primary">Actualizar</a>
+</div>
+
+<!-- Resumen general -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>${{ valor_ponderado_total|floatformat:2|intcomma }}</h3>
+                <p class="text-muted">Valor Ponderado Total</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ oportunidades_ganadas }}</h3>
+                <p class="text-success">Ganadas (30 días)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ oportunidades_perdidas }}</h3>
+                <p class="text-danger">Perdidas (30 días)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ tasa_conversion|floatformat:1 }}%</h3>
+                <p class="text-muted">Tasa de Conversión</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pipeline detallado -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Pipeline por Etapas</h5>
+    </div>
+    <div class="card-body">
+        {% if pipeline %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Etapa</th>
+                        <th>Oportunidades</th>
+                        <th>Monto Total</th>
+                        <th>Probabilidad Promedio</th>
+                        <th>Valor Ponderado</th>
+                        <th>Tiempo Promedio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etapa in pipeline %}
+                    <tr class="{% if etapa.etapa == 'ganado' %}table-success{% elif etapa.etapa == 'perdido' %}table-danger{% endif %}">
+                        <td>
+                            <strong>{{ etapa.nombre_etapa }}</strong><br>
+                            <small>{{ etapa.etapa }}</small>
+                        </td>
+                        <td>{{ etapa.total_oportunidades }}</td>
+                        <td>${{ etapa.monto_total|floatformat:2|intcomma }}</td>
+                        <td>{{ etapa.probabilidad_promedio|floatformat:1 }}%</td>
+                        <td>${{ etapa.valor_ponderado|floatformat:2|intcomma }}</td>
+                        <td>{{ etapa.tiempo_promedio }} días</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark">
+                        <th>Total</th>
+                        <th>{{ pipeline|length }}</th>
+                        <th>${{ monto_total_pipeline|floatformat:2|intcomma }}</th>  <!-- ← Usar variable directa -->
+                        <th></th>
+                        <th>${{ valor_ponderado_total|floatformat:2|intcomma }}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No hay oportunidades en el pipeline.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

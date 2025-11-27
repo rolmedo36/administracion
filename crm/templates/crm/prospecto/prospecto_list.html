@@ -1,0 +1,94 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Prospectos</h2>
+    <a href="{% url 'crm:prospecto_create' %}" class="btn btn-success">+ Nuevo Prospecto</a>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4 g-2">
+    <div class="col-md-3">
+        <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="estado">
+            <option value="">Todos los estados</option>
+            {% for value, label in estados %}
+            <option value="{{ value }}" {% if estado_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="origen">
+            <option value="">Todos los orígenes</option>
+            {% for value, label in origenes %}
+            <option value="{{ value }}" {% if origen_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="asignado">
+            <option value="">Todos los comerciales</option>
+            {% for user in comerciales %}
+            <option value="{{ user.id }}" {% if asignado_filtro == user.id|stringformat:"i" %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</div>
+
+{% if prospectos %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+            <tr>
+                <th>Nombre</th>
+                <th>Empresa</th>
+                <th>Email</th>
+                <th>Origen</th>
+                <th>Estado</th>
+                <th>Próximo Contacto</th>
+                <th>Asignado a</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prospecto in prospectos %}
+            <tr class="{% if prospecto.fecha_proximo_contacto and prospecto.fecha_proximo_contacto|date:'U' < now|date:'U' %}table-warning{% endif %}">
+                <td>{{ prospecto.nombre }}</td>
+                <td>{{ prospecto.empresa|default:"—" }}</td>
+                <td>{{ prospecto.email|default:"—" }}</td>
+                <td>{{ prospecto.get_origen_display }}</td>
+                <td>
+                    <span class="badge bg-{% if prospecto.estado == 'nuevo' %}secondary{% elif prospecto.estado == 'contactado' %}info{% elif prospecto.estado == 'calificado' %}success{% else %}danger{% endif %}">
+                        {{ prospecto.get_estado_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if prospecto.fecha_proximo_contacto %}
+                        {{ prospecto.fecha_proximo_contacto|date:"d/m/Y H:i" }}
+                        {% if prospecto.fecha_proximo_contacto|date:'U' < now|date:'U' %}
+                            <span class="badge bg-warning">Vencido</span>
+                        {% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ prospecto.asignado_a.username|default:"Sin asignar" }}</td>
+                <td>
+                    <a href="{% url 'crm:prospecto_detail' prospecto.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    <a href="{% url 'crm:prospecto_update' prospecto.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay prospectos que coincidan con los criterios de búsqueda.</div>
+{% endif %}
+{% endblock %}

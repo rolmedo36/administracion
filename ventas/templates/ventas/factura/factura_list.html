@@ -33,6 +33,11 @@
                     </span>
                 </td>
                 <td>
+                    {% if fac.estado == 'activa' %}
+                        <a href="{% url 'ventas:timbrar_factura' fac.pk %}" class="btn btn-warning">
+                            <i class="fas fa-file-invoice-dollar"></i> Timbrar Factura
+                        </a>
+                    {% endif %}
                     <a href="{% url 'ventas:factura_detail' fac.pk %}" class="btn btn-sm btn-info">Ver</a>
                     <a href="{% url 'ventas:factura_print' fac.pk %}" class="btn btn-sm btn-primary">Imprimir</a>
                 </td>

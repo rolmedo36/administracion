@@ -22,7 +22,7 @@ class MaterialListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'materiales/material_list.html'
     context_object_name = 'materiales'
     permission_required = 'materiales.view_material'
-    paginate_by = 10
+    paginate_by = 8
 
     def get_queryset(self):
         queryset = Material.objects.all()

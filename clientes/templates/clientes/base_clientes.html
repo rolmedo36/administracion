@@ -1,54 +1,112 @@
-<!-- compras/templates/compras/base_compras.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block subnavbar %}
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold text-success" href="{% url 'clientes:cliente_index' %}">
-            Módulo Ventas
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 1001;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-success d-flex align-items-center" href="/">
+            <img src="{% static 'core/img/logo.png' %}" alt="NCP SOFTWARE" class="me-2" style="height: 40px; width: auto;">
         </a>
-        <div class="navbar-nav">
-            <!-- Catálogos -->
-            <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="catalogosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Catálogos
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="catalogosDropdown">
-                    <li>
-                        <a class="dropdown-item {% if 'cliente_' in request.resolver_match.url_name %}active{% endif %}"
-                           href="{% url 'clientes:cliente_list' %}">
-                            Clientes
-                        </a>
-                    </li>
-                </ul>
+        <a class="navbar-brand fw-bold text-success d-flex align-items-center" href="{% url 'clientes:cliente_index' %}">
+            <span>Cuentas por cobrar</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="catalogosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Catálogos
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="catalogosDropdown">
+                        <li>
+                            <a class="dropdown-item {% if 'cliente_' in request.resolver_match.url_name %}active{% endif %}"
+                               href="{% url 'clientes:cliente_list' %}">
+                                Clientes
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Transacciones -->
-            <div class="nav-item dropdown ms-3">
-                <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Transacciones
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
-                    <li>
-                        <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
-                           href="{% url 'ventas:cotizacion_list' %}">
-                            Cotizaciones
-                        </a>
-                    </li>
-                </ul>
+            <div class="navbar-nav">
+                <div class="nav-item dropdown ms-3">
+                    <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Transacciones
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:cotizacion_list' %}">
+                                Cotizaciones
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:pedido_list' %}">
+                                Pedidos
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:factura_list' %}">
+                                Facturas
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="nav-item dropdown ms-3">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Reportes
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:reporte_cxc_saldos' %}">
+                                Saldos por cobrar
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:reporte_cxc_aging' %}">
+                                Antigüedad de saldos
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:reporte_cxc_vencimientos' %}">
+                                Vencimientos próximos
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if 'ventas_' in request.resolver_match.url_name and not 'por_recibir' in request.get_full_path %}active{% endif %}"
+                               href="{% url 'ventas:reporte_cxc_clientes_mayor_saldo' %}">
+                                Clientes con mayor saldo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 </nav>
 
 <style>
-.dropdown-item.active {
-    background-color: #e9ecef;
-    color: #198754;
-    font-weight: bold;
-}
-.navbar-nav .nav-item .dropdown-menu {
-    margin-top: 0;
-}
+    /* Margen superior para que el contenido no quede oculto tras el navbar fijo */
+    body {
+        padding-top: 70px;
+    }
+
+    .dropdown-item.active {
+        background-color: #e9ecef;
+        color: #198754;
+        font-weight: bold;
+    }
+
+    .navbar-nav .nav-item .dropdown-menu {
+        margin-top: 0;
+    }
 </style>
 {% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Plantillas de Email</h2>
+    <a href="{% url 'crm:plantilla_email_create' %}" class="btn btn-primary">+ Nueva Plantilla</a>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4 g-2">
+    <div class="col-md-4">
+        <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="activa">
+            <option value="">Todas</option>
+            <option value="true" {% if activa_filtro == 'true' %}selected{% endif %}>Activas</option>
+            <option value="false" {% if activa_filtro == 'false' %}selected{% endif %}>Inactivas</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input type="text" class="form-control" name="categoria" placeholder="Categoría" value="{{ categoria_filtro }}">
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</div>
+
+{% if plantillas %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+            <tr>
+                <th>Nombre</th>
+                <th>Asunto</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Creada por</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plantilla in plantillas %}
+            <tr>
+                <td>{{ plantilla.nombre }}</td>
+                <td>{{ plantilla.asunto }}</td>
+                <td>{{ plantilla.categoria|default:"—" }}</td>
+                <td>
+                    {% if plantilla.activa %}
+                        <span class="badge bg-success">Activa</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td>{{ plantilla.creado_por.username }}</td>
+                <td>
+                    <a href="{% url 'crm:plantilla_email_detail' plantilla.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    <a href="{% url 'crm:plantilla_email_update' plantilla.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay plantillas de email que coincidan con los criterios de búsqueda.</div>
+{% endif %}
+{% endblock %}

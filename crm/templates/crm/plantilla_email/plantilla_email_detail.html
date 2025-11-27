@@ -1,0 +1,65 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Plantilla <span class="text-primary">{{ plantilla.nombre }}</span></h2>
+    <div>
+        <a href="{% url 'crm:plantilla_email_update' plantilla.pk %}" class="btn btn-warning">Editar</a>
+        <a href="{% url 'crm:plantilla_email_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{ plantilla.nombre }}</p>
+                <p><strong>Asunto:</strong> {{ plantilla.asunto }}</p>
+                <p><strong>Categoría:</strong> {{ plantilla.categoria|default:"—" }}</p>
+                <p><strong>Estado:</strong>
+                    {% if plantilla.activa %}
+                        <span class="badge bg-success">Activa</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactiva</span>
+                    {% endif %}
+                </p>
+                <p><strong>Creada por:</strong> {{ plantilla.creado_por.username }}</p>
+                <p><strong>Fecha de Creación:</strong> {{ plantilla.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Cuerpo del Email</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded" style="white-space: pre-wrap; word-wrap: break-word;">{{ plantilla.cuerpo }}</pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Variables Disponibles</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><code>{{ "{% templatetag openvariable %}" }} nombre {{ "{% templatetag closevariable %}" }}</code> - Nombre del prospecto/cliente</li>
+                    <li><code>{{ "{% templatetag openvariable %}" }} empresa {{ "{% templatetag closevariable %}" }}</code> - Empresa del prospecto</li>
+                    <li><code>{{ "{% templatetag openvariable %}" }} fecha {{ "{% templatetag closevariable %}" }}</code> - Fecha actual</li>
+                </ul>
+                <div class="alert alert-info small">
+                    <strong>Ejemplo:</strong><br>
+                    <code>Hola {{ "{% templatetag openvariable %}" }} nombre {{ "{% templatetag closevariable %}" }},</code><br>
+                    <code>Gracias por contactarnos.</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

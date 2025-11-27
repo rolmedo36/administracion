@@ -1,0 +1,90 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Actividad <span class="text-info">{{ actividad.asunto }}</span></h2>
+    <div>
+        {% if actividad.estado == 'pendiente' %}
+            <a href="{% url 'crm:completar_actividad' actividad.pk %}" class="btn btn-success">Completar Actividad</a>
+        {% endif %}
+        <a href="{% url 'crm:actividad_update' actividad.pk %}" class="btn btn-warning">Editar</a>
+        <a href="{% url 'crm:actividad_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Tipo:</strong>
+                    <span class="badge bg-{% if actividad.tipo == 'llamada' %}info{% elif actividad.tipo == 'email' %}primary{% elif actividad.tipo == 'reunion' %}warning{% elif actividad.tipo == 'tarea' %}secondary{% else %}light{% endif %}">
+                        {{ actividad.get_tipo_display }}
+                    </span>
+                </p>
+                <p><strong>Asunto:</strong> {{ actividad.asunto }}</p>
+                <p><strong>Estado:</strong>
+                    <span class="badge bg-{% if actividad.estado == 'pendiente' %}warning{% elif actividad.estado == 'completada' %}success{% else %}danger{% endif %}">
+                        {{ actividad.get_estado_display }}
+                    </span>
+                </p>
+                <p><strong>Fecha y Hora:</strong> {{ actividad.fecha_hora|date:"d/m/Y H:i" }}</p>
+                {% if actividad.completada_fecha %}
+                    <p><strong>Completada el:</strong> {{ actividad.completada_fecha|date:"d/m/Y H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Relacionado con</h5>
+            </div>
+            <div class="card-body">
+                {% if actividad.prospecto %}
+                    <p><strong>Prospecto:</strong> {{ actividad.prospecto.nombre }}</p>
+                    <p><strong>Empresa:</strong> {{ actividad.prospecto.empresa|default:"—" }}</p>
+                    <p><strong>Email:</strong> {{ actividad.prospecto.email|default:"—" }}</p>
+                {% elif actividad.oportunidad %}
+                    <p><strong>Oportunidad:</strong> {{ actividad.oportunidad.nombre }}</p>
+                    {% if actividad.oportunidad.cliente %}
+                        <p><strong>Cliente:</strong> {{ actividad.oportunidad.cliente.nombre }}</p>
+                    {% elif actividad.oportunidad.prospecto %}
+                        <p><strong>Prospecto:</strong> {{ actividad.oportunidad.prospecto.nombre }}</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No hay relación definida.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Asignación</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Asignado a:</strong> {{ actividad.relacionado_con.username }}</p>
+                <p><strong>Creado por:</strong> {{ actividad.creado_por.username }}</p>
+                <p><strong>Fecha de Creación:</strong> {{ actividad.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Descripción</h5>
+            </div>
+            <div class="card-body">
+                {% if actividad.descripcion %}
+                    <p>{{ actividad.descripcion|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">Sin descripción.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

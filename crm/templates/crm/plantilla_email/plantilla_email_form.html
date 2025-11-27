@@ -1,0 +1,43 @@
+{% extends 'crm/base_crm.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>{% if object %}Editar Plantilla{% else %}Nueva Plantilla{% endif %} de Email</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.nombre.label_tag }}
+                        {{ form.nombre }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.asunto.label_tag }}
+                        {{ form.asunto }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.cuerpo.label_tag }}
+                        {{ form.cuerpo }}
+                        {% if form.cuerpo.help_text %}
+                            <div class="form-text">{{ form.cuerpo.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.categoria.label_tag }}
+                        {{ form.categoria }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.activa }}
+                        {{ form.activa.label_tag }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Plantilla</button>
+                    <a href="{% url 'crm:plantilla_email_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

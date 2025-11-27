@@ -1,48 +1,89 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib import messages
 from django.contrib.auth.models import User
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
-# Formulario personalizado para crear usuario
-class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+# === LOGIN ===
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, f"Bienvenido, {user.username}!")
+            return redirect('/')
+        else:
+            messages.error(request, "Usuario o contraseña incorrectos.")
+    return render(request, 'accounts/login.html')
 
-    class Meta:
-        model = User
-        fields = ("username", "email", "first_name", "last_name")
+# === LOGOUT ===
+@login_required
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, "Sesión cerrada exitosamente.")
+        return redirect('accounts:login')
+    return render(request, 'accounts/logout.html')
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data["email"]
-        if commit:
-            user.save()
-        return user
+# === REGISTRO ===
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Usuario {user.username} creado exitosamente.")
+            return redirect('accounts:login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'accounts/register.html', {'form': form})
 
-# Vistas basadas en clases
-class UserListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = User
-    template_name = 'accounts/user_list.html'
-    context_object_name = 'users'
-    permission_required = 'auth.view_user'
+# === LISTA DE USUARIOS ===
+@login_required
+@permission_required('auth.view_user', raise_exception=True)
+def user_list(request):
+    users = User.objects.all().order_by('username')
+    return render(request, 'accounts/user_list.html', {'users': users})
 
-class UserCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = User
-    form_class = CustomUserCreationForm
-    template_name = 'accounts/user_form.html'
-    success_url = reverse_lazy('accounts:user_list')
-    permission_required = 'auth.add_user'
+# === CREAR USUARIO ===
+@login_required
+@permission_required('auth.add_user', raise_exception=True)
+def user_create(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Usuario {user.username} creado exitosamente.")
+            return redirect('accounts:user_list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'accounts/user_form.html', {'form': form})
 
-class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = User
-    fields = ['username', 'email', 'first_name', 'last_name', 'is_active']
-    template_name = 'accounts/user_form.html'
-    success_url = reverse_lazy('accounts:user_list')
-    permission_required = 'auth.change_user'
+# === EDITAR USUARIO ===
+@login_required
+@permission_required('auth.change_user', raise_exception=True)
+def user_update(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = UserChangeForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Usuario {user.username} actualizado.")
+            return redirect('accounts:user_list')
+    else:
+        form = UserChangeForm(instance=user)
+    return render(request, 'accounts/user_form.html', {'form': form, 'object': user})
 
-class UserDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = User
-    template_name = 'accounts/user_confirm_delete.html'
-    success_url = reverse_lazy('accounts:user_list')
-    permission_required = 'auth.delete_user'
+# === ELIMINAR USUARIO ===
+@login_required
+@permission_required('auth.delete_user', raise_exception=True)
+def user_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f"Usuario {username} eliminado.")
+        return redirect('accounts:user_list')
+    return render(request, 'accounts/user_confirm_delete.html', {'object': user})

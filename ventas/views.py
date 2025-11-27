@@ -19,6 +19,7 @@ from datetime import date, timedelta
 from django.db.models import Case, When, IntegerField, Sum
 from django.db import models
 from flujocaja.models import MovimientoBancario
+from core.services.facturadigital_service import timbrar_factura_venta
 
 @login_required
 @permission_required('ventas.view_cotizacionventa', raise_exception=True)
@@ -688,4 +689,29 @@ def reporte_cxc_clientes_mayor_saldo(request):
     return render(request, 'ventas/cxc/reportes/cxc_clientes_mayor_saldo.html', {
         'clientes_saldo': clientes_saldo,
         'total_general': total_general,
+    })
+
+# TIMBRADO
+@login_required
+@permission_required('ventas.change_facturaventa', raise_exception=True)
+def timbrar_factura(request, pk):
+    """
+    Timbra una factura usando FacturaDigital.
+    """
+    factura = get_object_or_404(FacturaVenta, pk=pk)
+
+    if factura.estado == 'timbrada':
+        messages.error(request, "Esta factura ya ha sido timbrada.")
+        return redirect('ventas:factura_detail', pk=pk)
+
+    if request.method == 'POST':
+        try:
+            timbrar_factura_venta(factura)  # ← Usa el servicio de FacturaDigital
+            messages.success(request, f"Factura {factura.folio} timbrada exitosamente.")
+            return redirect('ventas:factura_detail', pk=pk)
+        except Exception as e:
+            messages.error(request, f"Error al timbrar la factura: {str(e)}")
+
+    return render(request, 'ventas/factura/timbrar_factura.html', {
+        'factura': factura
     })

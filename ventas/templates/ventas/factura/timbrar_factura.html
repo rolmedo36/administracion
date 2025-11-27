@@ -1,0 +1,33 @@
+{% extends 'ventas/base_ventas.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5>Timbrar Factura {{ factura.folio }}</h5>
+            </div>
+            <div class="card-body">
+                <p>Esta acción enviará la factura al SAT y generará el CFDI timbrado.</p>
+
+                <div class="alert alert-info">
+                    <strong>Importante:</strong>
+                    <ul>
+                        <li>Una vez timbrada, la factura no se puede modificar</li>
+                        <li>Se generará el XML y PDF del CFDI</li>
+                        <li>El folio fiscal será: {{ factura.folio }}</li>
+                    </ul>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-file-invoice-dollar"></i> Timbrar Factura
+                    </button>
+                    <a href="{% url 'ventas:factura_detail' factura.pk %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

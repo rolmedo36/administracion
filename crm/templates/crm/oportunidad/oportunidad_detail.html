@@ -1,0 +1,85 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Oportunidad <span class="text-success">{{ oportunidad.nombre }}</span></h2>
+    <div>
+        <a href="{% url 'crm:oportunidad_update' oportunidad.pk %}" class="btn btn-warning">Editar</a>
+        <a href="{% url 'crm:oportunidad_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{ oportunidad.nombre }}</p>
+                {% if oportunidad.cliente %}
+                    <p><strong>Cliente:</strong> {{ oportunidad.cliente.nombre }}</p>
+                {% elif oportunidad.prospecto %}
+                    <p><strong>Prospecto:</strong> {{ oportunidad.prospecto.nombre }}</p>
+                {% endif %}
+                <p><strong>Monto Estimado:</strong> ${{ oportunidad.monto_estimado|floatformat:2|intcomma }}</p>
+                <p><strong>Descripción:</strong> {{ oportunidad.descripcion|default:"—" }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Seguimiento</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Etapa:</strong>
+                    <span class="badge bg-{% if oportunidad.etapa == 'ganado' %}success{% elif oportunidad.etapa == 'perdido' %}danger{% elif oportunidad.etapa == 'propuesta' %}warning{% else %}secondary{% endif %}">
+                        {{ oportunidad.get_etapa_display }}
+                    </span>
+                </p>
+                <p><strong>Probabilidad:</strong> {{ oportunidad.probabilidad }}%</p>
+                <p><strong>Cierre Estimado:</strong>
+                    {% if oportunidad.fecha_cierre_estimada %}
+                        {{ oportunidad.fecha_cierre_estimada|date:"d/m/Y" }}
+                    {% else %}
+                        <span class="text-muted">No definido</span>
+                    {% endif %}
+                </p>
+                <p><strong>Próximo Contacto:</strong>
+                    {% if oportunidad.fecha_proximo_contacto %}
+                        {{ oportunidad.fecha_proximo_contacto|date:"d/m/Y H:i" }}
+                    {% else %}
+                        <span class="text-muted">No programado</span>
+                    {% endif %}
+                </p>
+                <p><strong>Asignado a:</strong> {{ oportunidad.asignado_a.username|default:"Sin asignar" }}</p>
+                <p><strong>Creado por:</strong> {{ oportunidad.creado_por.username }}</p>
+                <p><strong>Fecha de Creación:</strong> {{ oportunidad.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Pipeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar"
+                         style="width: {{ oportunidad.probabilidad }}%;"
+                         aria-valuenow="{{ oportunidad.probabilidad }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                        {{ oportunidad.probabilidad }}%
+                    </div>
+                </div>
+                <small class="text-muted">
+                    Etapa actual: {{ oportunidad.get_etapa_display }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

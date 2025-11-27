@@ -1,0 +1,50 @@
+{% extends 'crm/base_crm.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4>{% if object %}Editar Actividad{% else %}Nueva Actividad{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.tipo.label_tag }}
+                            {{ form.tipo }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.asunto.label_tag }}
+                            {{ form.asunto }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.prospecto.label_tag }}
+                            {{ form.prospecto }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.oportunidad.label_tag }}
+                            {{ form.oportunidad }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.relacionado_con.label_tag }}
+                            {{ form.relacionado_con }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.fecha_hora.label_tag }}
+                            {{ form.fecha_hora }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-info">Guardar Actividad</button>
+                    <a href="{% url 'crm:actividad_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

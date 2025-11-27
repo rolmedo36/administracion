@@ -4,6 +4,8 @@ from . import views
 app_name = 'flujocaja'
 
 urlpatterns = [
+    path('', views.flujocaja_index, name='flujocaja_index'),
+
     # Bancos
     path('bancos/', views.banco_list, name='banco_list'),
     path('bancos/crear/', views.banco_create, name='banco_create'),

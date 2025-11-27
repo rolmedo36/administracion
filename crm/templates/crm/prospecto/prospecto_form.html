@@ -1,0 +1,62 @@
+{% extends 'crm/base_crm.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>{% if object %}Editar Prospecto{% else %}Nuevo Prospecto{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.nombre.label_tag }}
+                            {{ form.nombre }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.empresa.label_tag }}
+                            {{ form.empresa }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.email.label_tag }}
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.telefono.label_tag }}
+                            {{ form.telefono }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.cargo.label_tag }}
+                            {{ form.cargo }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.origen.label_tag }}
+                            {{ form.origen }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.estado.label_tag }}
+                            {{ form.estado }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.asignado_a.label_tag }}
+                            {{ form.asignado_a }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.fecha_proximo_contacto.label_tag }}
+                            {{ form.fecha_proximo_contacto }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.notas.label_tag }}
+                            {{ form.notas }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Prospecto</button>
+                    <a href="{% url 'crm:prospecto_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

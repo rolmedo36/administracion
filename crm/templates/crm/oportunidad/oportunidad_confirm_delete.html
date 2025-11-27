@@ -1,0 +1,22 @@
+{% extends 'crm/base_crm.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header bg-danger text-white">
+                <h5>Desactivar Oportunidad</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Está seguro de que desea desactivar la oportunidad <strong>{{ object.nombre }}</strong>?</p>
+                <p class="text-muted">Esta acción no elimina el registro, solo lo desactiva.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Desactivar</button>
+                    <a href="{% url 'crm:oportunidad_detail' object.pk %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

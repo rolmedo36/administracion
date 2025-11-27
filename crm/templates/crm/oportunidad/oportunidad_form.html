@@ -1,0 +1,65 @@
+{% extends 'crm/base_crm.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>{% if object %}Editar Oportunidad{% else %}Nueva Oportunidad{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.prospecto.label_tag }}
+                            {{ form.prospecto }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.cliente.label_tag }}
+                            {{ form.cliente }}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            {{ form.nombre.label_tag }}
+                            {{ form.nombre }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.monto_estimado.label_tag }}
+                            {{ form.monto_estimado }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.etapa.label_tag }}
+                            {{ form.etapa }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.probabilidad.label_tag }}
+                            <div class="input-group">
+                                {{ form.probabilidad }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.asignado_a.label_tag }}
+                            {{ form.asignado_a }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.fecha_cierre_estimada.label_tag }}
+                            {{ form.fecha_cierre_estimada }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.fecha_proximo_contacto.label_tag }}
+                            {{ form.fecha_proximo_contacto }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar Oportunidad</button>
+                    <a href="{% url 'crm:oportunidad_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

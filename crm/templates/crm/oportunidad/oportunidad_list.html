@@ -1,0 +1,124 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Oportunidades</h2>
+    <a href="{% url 'crm:oportunidad_create' %}" class="btn btn-success">+ Nueva Oportunidad</a>
+</div>
+
+<!-- Pipeline Stats -->
+<div class="row mb-4">
+    {% for stat in pipeline_stats %}
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title">{{ stat.etapa }}</h6>
+                <h4>{{ stat.total_oportunidades }}</h4>
+                <p class="text-muted">${{ stat.monto_total|default:0|floatformat:2|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4 g-2">
+    <div class="col-md-4">
+        <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+    </div>
+    <div class="col-md-3">
+        <select class="form-control" name="etapa">
+            <option value="">Todas las etapas</option>
+            {% for value, label in etapas %}
+            <option value="{{ value }}" {% if etapa_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-control" name="asignado">
+            <option value="">Todos los comerciales</option>
+            {% for user in comerciales %}
+            <option value="{{ user.id }}" {% if asignado_filtro == user.id|stringformat:"i" %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</div>
+
+{% if oportunidades %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-success">
+            <tr>
+                <th>Nombre</th>
+                <th>Cliente/Prospecto</th>
+                <th>Monto</th>
+                <th>Etapa</th>
+                <th>Probabilidad</th>
+                <th>Cierre Estimado</th>
+                <th>Próximo Contacto</th>
+                <th>Asignado a</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for opty in oportunidades %}
+            <tr class="{% if opty.fecha_proximo_contacto and opty.fecha_proximo_contacto|date:'U' < now|date:'U' %}table-warning{% endif %}">
+                <td>{{ opty.nombre }}</td>
+                <td>
+                    {% if opty.cliente %}
+                        <span class="badge bg-info">Cliente</span> {{ opty.cliente.nombre }}
+                    {% elif opty.prospecto %}
+                        <span class="badge bg-primary">Prospecto</span> {{ opty.prospecto.nombre }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>${{ opty.monto_estimado|floatformat:2|intcomma }}</td>
+                <td>
+                    <span class="badge bg-{% if opty.etapa == 'ganado' %}success{% elif opty.etapa == 'perdido' %}danger{% elif opty.etapa == 'propuesta' %}warning{% else %}secondary{% endif %}">
+                        {{ opty.get_etapa_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ opty.probabilidad }}%;"
+                             aria-valuenow="{{ opty.probabilidad }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small>{{ opty.probabilidad }}%</small>
+                </td>
+                <td>
+                    {% if opty.fecha_cierre_estimada %}
+                        {{ opty.fecha_cierre_estimada|date:"d/m/Y" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if opty.fecha_proximo_contacto %}
+                        {{ opty.fecha_proximo_contacto|date:"d/m/Y H:i" }}
+                        {% if opty.fecha_proximo_contacto|date:'U' < now|date:'U' %}
+                            <span class="badge bg-warning">Vencido</span>
+                        {% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ opty.asignado_a.username|default:"Sin asignar" }}</td>
+                <td>
+                    <a href="{% url 'crm:oportunidad_detail' opty.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    <a href="{% url 'crm:oportunidad_update' opty.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay oportunidades que coincidan con los criterios de búsqueda.</div>
+{% endif %}
+{% endblock %}

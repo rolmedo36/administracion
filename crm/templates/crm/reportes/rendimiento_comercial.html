@@ -1,0 +1,69 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Rendimiento por Comercial</h2>
+    <a href="{% url 'crm:reporte_rendimiento_comercial' %}" class="btn btn-outline-primary">Actualizar</a>
+</div>
+
+<!-- Top 5 comerciales -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5>Top 5 Comerciales por Monto Ganado</h5>
+        <div class="progress" style="height: 30px;">
+            {% for comercial in top_comerciales %}
+            <div class="progress-bar bg-{% cycle 'success' 'info' 'warning' 'primary' 'secondary' %}"
+                 role="progressbar"
+                 style="width: {{ comercial.porcentaje_monto|floatformat:1 }}%;"
+                 title="{{ comercial.username }}: ${{ comercial.monto_ganado|floatformat:2|intcomma }}">
+                {{ comercial.username }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Tabla detallada -->
+<div class="card">
+    <div class="card-header bg-warning text-white">
+        <h5 class="mb-0">Rendimiento Detallado por Comercial</h5>
+    </div>
+    <div class="card-body">
+        {% if rendimiento %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Comercial</th>
+                        <th>Prospectos Asignados</th>
+                        <th>Oportunidades</th>
+                        <th>Oportunidades Ganadas</th>
+                        <th>Tasa de Conversión</th>
+                        <th>Pipeline ($)</th>
+                        <th>Ganado ($)</th>
+                        <th>Valor Promedio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comercial in rendimiento %}
+                    <tr class="{% if comercial.tasa_conversion > 50 %}table-success{% elif comercial.tasa_conversion > 30 %}table-warning{% else %}table-danger{% endif %}">
+                        <td><strong>{{ comercial.username }}</strong></td>
+                        <td>{{ comercial.total_prospectos_asignados }}</td>
+                        <td>{{ comercial.total_oportunidades_asignadas }}</td>
+                        <td>{{ comercial.total_oportunidades_ganadas }}</td>
+                        <td>{{ comercial.tasa_conversion|floatformat:1 }}%</td>
+                        <td>${{ comercial.monto_pipeline|floatformat:2|intcomma }}</td>
+                        <td>${{ comercial.monto_ganado|floatformat:2|intcomma }}</td>
+                        <td>${{ comercial.valor_promedio_oportunidad|floatformat:2|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No hay comerciales con actividades asignadas.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

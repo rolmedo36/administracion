@@ -26,6 +26,7 @@ urlpatterns = [
     path('facturas/crear/', views.factura_create, name='factura_create'),
     path('facturas/<int:pk>/', views.factura_detail, name='factura_detail'),
     path('facturas/<int:pk>/imprimir/', views.factura_print, name='factura_print'),
+    path('facturas/<int:pk>/timbrar/', views.timbrar_factura, name='timbrar_factura'),
 
     # Cuentas por Cobrar
     path('cxc/', views.cxc_list, name='cxc_list'),

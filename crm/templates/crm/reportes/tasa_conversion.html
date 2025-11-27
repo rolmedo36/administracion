@@ -1,0 +1,105 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Tasa de Conversión</h2>
+    <a href="{% url 'crm:reporte_tasa_conversion' %}" class="btn btn-outline-primary">Actualizar</a>
+</div>
+
+<!-- Conversión general -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ total_prospectos }}</h3>
+                <p class="text-muted">Prospectos Totales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ total_oportunidades }}</h3>
+                <p class="text-info">Oportunidades Creadas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ total_clientes }}</h3>
+                <p class="text-success">Clientes Ganados</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ tasa_prospecto_oportunidad|floatformat:1 }}%</h4>
+                <p>Prospecto → Oportunidad</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ tasa_oportunidad_cliente|floatformat:1 }}%</h4>
+                <p>Oportunidad → Cliente</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4>{{ tasa_prospecto_cliente|floatformat:1 }}%</h4>
+                <p>Prospecto → Cliente</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conversión por origen -->
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Conversión por Origen de Lead</h5>
+    </div>
+    <div class="card-body">
+        {% if conversion_origen %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Origen</th>
+                        <th>Prospectos</th>
+                        <th>Oportunidades</th>
+                        <th>Clientes</th>
+                        <th>Prospecto → Oportunidad</th>
+                        <th>Oportunidad → Cliente</th>
+                        <th>Prospecto → Cliente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for origen in conversion_origen %}
+                    <tr>
+                        <td>{{ origen.origen }}</td>
+                        <td>{{ origen.total_prospectos }}</td>
+                        <td>{{ origen.total_oportunidades }}</td>
+                        <td>{{ origen.total_clientes }}</td>
+                        <td>{{ origen.tasa_prospecto_oportunidad|floatformat:1 }}%</td>
+                        <td>{{ origen.tasa_oportunidad_cliente|floatformat:1 }}%</td>
+                        <td>{{ origen.tasa_prospecto_cliente|floatformat:1 }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No hay datos de conversión por origen.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

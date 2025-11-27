@@ -1,0 +1,73 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Análisis por Origen de Leads</h2>
+    <a href="{% url 'crm:reporte_analisis_origen' %}" class="btn btn-outline-primary">Actualizar</a>
+</div>
+
+<!-- Origen más efectivo -->
+{% if origen_efectivo %}
+<div class="alert alert-success">
+    <h5>Origen más efectivo: <strong>{{ origen_efectivo.nombre_origen }}</strong></h5>
+    <p>Tasa de conversión a cliente: <strong>{{ origen_efectivo.tasa_cliente|floatformat:1 }}%</strong></p>
+</div>
+{% endif %}
+
+<!-- Tabla de análisis -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Análisis Detallado por Origen</h5>
+    </div>
+    <div class="card-body">
+        {% if analisis_origen %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Origen</th>
+                        <th>Prospectos</th>
+                        <th>Calificados</th>
+                        <th>Oportunidades</th>
+                        <th>Clientes</th>
+                        <th>Calificación</th>
+                        <th>Oportunidad</th>
+                        <th>Conversión Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for origen in analisis_origen %}
+                    <tr class="{% if origen.tasa_cliente > 20 %}table-success{% elif origen.tasa_cliente > 10 %}table-warning{% else %}table-danger{% endif %}">
+                        <td>
+                            <strong>{{ origen.nombre_origen }}</strong><br>
+                            <small>{{ origen.origen }}</small>
+                        </td>
+                        <td>{{ origen.total_prospectos }}</td>
+                        <td>{{ origen.total_calificados }}</td>
+                        <td>{{ origen.total_oportunidades }}</td>
+                        <td>{{ origen.total_clientes }}</td>
+                        <td>{{ origen.tasa_calificacion|floatformat:1 }}%</td>
+                        <td>{{ origen.tasa_oportunidad|floatformat:1 }}%</td>
+                        <td>{{ origen.tasa_cliente|floatformat:1 }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recomendaciones -->
+<!--        <div class="alert alert-info mt-3">-->
+<!--            <h6>💡 Recomendaciones:</h6>-->
+<!--            <ul>-->
+<!--                <li><strong>Invierte más</strong> en los orígenes con tasa de conversión > 20%</li>-->
+<!--                <li><strong>Optimiza el proceso</strong> para orígenes con tasa de calificación baja</li>-->
+<!--                <li><strong>Elimina o mejora</strong> los canales con conversión < 5%</li>-->
+<!--            </ul>-->
+<!--        </div>-->
+        {% else %}
+        <div class="alert alert-info">No hay datos de análisis por origen.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

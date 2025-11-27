@@ -1,0 +1,174 @@
+{% extends 'crm/base_crm.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Actividades y Seguimiento</h2>
+    <a href="{% url 'crm:reporte_actividades_seguimiento' %}" class="btn btn-outline-primary">Actualizar</a>
+</div>
+
+<!-- Métricas clave -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ actividades_vencidas }}</h3>
+                <p class="text-danger">Actividades Vencidas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ actividades_completadas }}</h3>
+                <p class="text-success">Completadas (30 días)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ tiempo_promedio_respuesta|floatformat:1 }}h</h3>
+                <p class="text-muted">Tiempo Respuesta Promedio</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{% for estado in actividades_estado %}{% if estado.estado == 'pendiente' %}{{ estado.total }}{% endif %}{% endfor %}</h3>
+                <p class="text-warning">Actividades Pendientes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Actividades por estado -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Actividades por Estado</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartEstado"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividades por tipo -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Actividades por Tipo</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartTipo"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actividades por comercial -->
+<div class="card mt-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">Actividades por Comercial</h5>
+    </div>
+    <div class="card-body">
+        {% if actividades_comercial %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Comercial</th>
+                        <th>Total Actividades</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comercial in actividades_comercial %}
+                    <tr>
+                        <td>{{ comercial.username }}</td>
+                        <td>{{ comercial.total_actividades }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No hay actividades registradas por comerciales.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart de Estado
+const ctxEstado = document.getElementById('chartEstado').getContext('2d');
+new Chart(ctxEstado, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for estado in actividades_estado %}
+                '{% if estado.estado == "pendiente" %}Pendientes{% elif estado.estado == "completada" %}Completadas{% else %}Canceladas{% endif %}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for estado in actividades_estado %}
+                    {{ estado.total }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#ffc107', // Pendientes - Amarillo
+                '#28a745', // Completadas - Verde
+                '#dc3545'  // Canceladas - Rojo
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+
+// Chart de Tipo
+const ctxTipo = document.getElementById('chartTipo').getContext('2d');
+new Chart(ctxTipo, {
+    type: 'bar',
+    data: {
+        labels: [
+            {% for tipo in actividades_tipo %}
+                '{% if tipo.tipo == "llamada" %}Llamadas{% elif tipo.tipo == "email" %}Emails{% elif tipo.tipo == "reunion" %}Reuniones{% elif tipo.tipo == "tarea" %}Tareas{% else %}Notas{% endif %}',
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Cantidad de Actividades',
+            data: [
+                {% for tipo in actividades_tipo %}
+                    {{ tipo.total }},
+                {% endfor %}
+            ],
+            backgroundColor: '#007bff'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

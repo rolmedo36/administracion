@@ -1,0 +1,23 @@
+<!-- crm/templates/crm/plantilla_email/plantilla_email_confirm_delete.html -->
+{% extends 'crm/base_crm.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header bg-danger text-white">
+                <h5>Eliminar Plantilla de Email</h5>
+            </div>
+            <div class="card-body">
+                <p>¿Está seguro de que desea eliminar la plantilla <strong>{{ object.nombre }}</strong>?</p>
+                <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <a href="{% url 'crm:plantilla_email_detail' object.pk %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
