@@ -11,7 +11,7 @@ from flujocaja.models import CuentaBancaria
 class CotizacionVentaForm(forms.ModelForm):
     class Meta:
         model = CotizacionVenta
-        fields = ['cliente', 'dias_validez']
+        fields = ['cliente', 'dias_validez', 'notas']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
             'dias_validez': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
@@ -66,7 +66,7 @@ DetalleCotizacionFormSet = forms.inlineformset_factory(
 class PedidoVentaForm(forms.ModelForm):
     class Meta:
         model = PedidoVenta
-        fields = ['cliente', 'cotizacion']
+        fields = ['cliente', 'cotizacion', 'notas']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
             'cotizacion': forms.Select(attrs={'class': 'form-control'}),
@@ -116,7 +116,7 @@ DetallePedidoFormSet = forms.inlineformset_factory(
 class FacturaVentaForm(forms.ModelForm):
     class Meta:
         model = FacturaVenta
-        fields = ['cliente', 'pedido', 'folio', 'fecha']
+        fields = ['cliente', 'pedido', 'folio', 'fecha', 'notas']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
             'pedido': forms.Select(attrs={'class': 'form-control'}),

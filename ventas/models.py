@@ -42,6 +42,7 @@ class CotizacionVenta(models.Model):
     total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    notas = models.TextField(blank=True, null=True, help_text="Observaciones")
 
     class Meta:
         verbose_name = "Cotización de Venta"
@@ -74,6 +75,7 @@ class PedidoVenta(models.Model):
     total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    notas = models.TextField(blank=True, null=True, help_text="Observaciones")
 
     class Meta:
         verbose_name = "Pedido de Venta"
@@ -120,6 +122,8 @@ class FacturaVenta(models.Model):
         ('timbrada', 'Timbrada'),
         ('cancelada', 'Cancelada'),
     ], default='activa')
+    notas = models.TextField(blank=True, null=True, help_text="Observaciones")
+
 
     class Meta:
         verbose_name = "Factura de Venta"

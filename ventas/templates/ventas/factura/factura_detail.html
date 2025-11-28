@@ -35,6 +35,15 @@
             </div>
             {% endif %}
         </div>
+        <div class="col-md-12">
+            <p><strong>Notas:</strong><br>
+                {% if factura.notas %}
+                    {{ factura.notas|linebreaks }}
+                {% else %}
+                    <span class="text-muted">Sin notas.</span>
+                {% endif %}
+            </p>
+        </div>
     </div>
 </div>
 
@@ -85,6 +94,7 @@
                         <td>${{ detalle.subtotal|floatformat:2|intcomma }}</td>
                     </tr>
                     {% endfor %}
+
                 </tbody>
                 <tfoot>
                     <tr>
