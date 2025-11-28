@@ -1,4 +1,4 @@
 .env
-venv/
+.venv/
 # Base de datos local
 db.sqlite3
