@@ -418,6 +418,7 @@ def factura_create(request):
                 with transaction.atomic():
                     factura = form.save(commit=False)
                     factura.creado_por = request.user
+                    factura.estado = 'activa'
                     factura.save()
 
                     detalles = formset.save(commit=False)
@@ -480,6 +481,59 @@ def factura_detail(request, pk):
         'factura': factura
     })
 
+@login_required
+@permission_required('ventas.change_facturaventa', raise_exception=True)
+def factura_update(request, pk):
+    factura = get_object_or_404(FacturaVenta, pk=pk)
+
+    if factura.estado in ['timbrada', 'cancelada']:
+        messages.error(request, "No se puede editar una factura timbrada o cancelada.")
+        return redirect('ventas:factura_detail', pk=pk)
+
+    if request.method == 'POST':
+        form = FacturaVentaForm(request.POST, instance=factura)
+        formset = DetalleFacturaFormSet(request.POST, instance=factura)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    # Guardar factura
+                    factura = form.save()
+
+                    # Guardar detalles
+                    formset.save()
+
+                    # Recalcular totales
+                    subtotal = sum(detalle.subtotal for detalle in factura.detalles.all())
+                    iva = sum(detalle.iva_monto for detalle in factura.detalles.all())
+                    factura.subtotal = subtotal
+                    factura.iva = iva
+                    factura.total = subtotal + iva
+                    factura.save()
+
+                    messages.success(request, f"Factura {factura.folio} actualizada exitosamente.")
+                    return redirect('ventas:factura_detail', pk=factura.pk)
+            except Exception as e:
+                messages.error(request, f"Error al actualizar la factura: {str(e)}")
+        else:
+            messages.error(request, "Por favor corrija los errores en el formulario.")
+    else:
+        form = FacturaVentaForm(instance=factura)
+        formset = DetalleFacturaFormSet(instance=factura)
+
+    clientes = Cliente.objects.filter(activo=True)
+    pedidos = PedidoVenta.objects.filter(estado='completo')
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+
+    return render(request, 'ventas/factura/factura_form.html', {
+        'form': form,
+        'formset': formset,
+        'empty_form': formset.empty_form,
+        'clientes': clientes,
+        'pedidos': pedidos,
+        'materiales': materiales,
+        'object': factura,
+    })
 
 @login_required
 @permission_required('ventas.view_facturaventa', raise_exception=True)

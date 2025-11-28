@@ -118,6 +118,7 @@ class FacturaVenta(models.Model):
     xml_timbrado = models.TextField(blank=True, null=True)
     pdf_timbrado = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=[
+        ('borrador', 'Borrador'),
         ('activa', 'Activa'),
         ('timbrada', 'Timbrada'),
         ('cancelada', 'Cancelada'),
