@@ -15,6 +15,7 @@
                 <th>Folio</th>
                 <th>Cliente</th>
                 <th>Fecha</th>
+                <th>Nota</th>
                 <th>Total</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -26,6 +27,7 @@
                 <td>{{ fac.folio }}</td>
                 <td>{{ fac.cliente.nombre }}</td>
                 <td>{{ fac.fecha|date:"d/m/Y" }}</td>
+                <td>{{ fac.notas }}</td>
                 <td>${{ fac.total|floatformat:2|intcomma }}</td>
                 <td>
                     <span class="badge bg-{% if fac.estado == 'activa' %}success{% else %}danger{% endif %}">
