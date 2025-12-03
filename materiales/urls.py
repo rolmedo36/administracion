@@ -1,4 +1,3 @@
-# materiales/urls.py
 from django.urls import path
 from . import views
 
@@ -24,4 +23,15 @@ urlpatterns = [
     path('almacenes/<int:pk>/editar/', views.almacen_update, name='almacen_update'),
     path('almacenes/<int:pk>/eliminar/', views.almacen_delete, name='almacen_delete'),
     path('reportes/existencias/', views.reporte_existencias, name='reporte_existencias'),
+
+    # Movimientos de almacen
+    path('movimientos/', views.movimiento_list, name='movimiento_list'),
+    path('movimientos/entrada/', views.entrada_mercancia, name='entrada_mercancia'),
+    path('movimientos/salida/', views.salida_mercancia, name='salida_mercancia'),
+    path('movimientos/transferencia/', views.transferencia_mercancia, name='transferencia_mercancia'),
+    path('movimientos/ajuste/', views.ajuste_inventario, name='ajuste_inventario'),
+    path('movimientos/<int:pk>/', views.detalle_movimiento, name='detalle_movimiento'),
+
+    # Reportes
+    path('reportes/kardex/', views.reporte_kardex, name='reporte_kardex'),
 ]

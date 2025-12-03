@@ -1,0 +1,101 @@
+{% extends 'materiales/base_materiales.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Movimiento <span class="text-primary">{{ movimiento.get_tipo_display }}</span></h2>
+    <div>
+        {% if movimiento.estado == 'borrador' %}
+            <a href="{% url 'materiales:editar_movimiento' movimiento.pk %}" class="btn btn-warning">Editar</a>
+            <a href="{% url 'materiales:confirmar_movimiento' movimiento.pk %}" class="btn btn-success">Confirmar</a>
+        {% endif %}
+        <a href="{% url 'materiales:movimiento_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Información General</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Tipo:</strong> {{ movimiento.get_tipo_display }}</p>
+                <p><strong>Fecha:</strong> {{ movimiento.fecha|date:"d/m/Y H:i" }}</p>
+                <p><strong>Documento:</strong> {{ movimiento.documento_referencia|default:"—" }}</p>
+                {% if movimiento.almacen_origen %}
+                    <p><strong>Almacén Origen:</strong> {{ movimiento.almacen_origen.nombre }}</p>
+                {% endif %}
+                {% if movimiento.almacen_destino %}
+                    <p><strong>Almacén Destino:</strong> {{ movimiento.almacen_destino.nombre }}</p>
+                {% endif %}
+                <p><strong>Estado:</strong>
+                    <span class="badge bg-{% if movimiento.estado == 'confirmado' %}success{% elif movimiento.estado == 'borrador' %}warning{% else %}danger{% endif %}">
+                        {{ movimiento.get_estado_display }}
+                    </span>
+                </p>
+                {% if movimiento.creado_por %}
+                    <p><strong>Creado por:</strong> {{ movimiento.creado_por.username }}</p>
+                {% endif %}
+                {% if movimiento.confirmado_por %}
+                    <p><strong>Confirmado por:</strong> {{ movimiento.confirmado_por.username }}</p>
+                    <p><strong>Fecha de Confirmación:</strong> {{ movimiento.fecha_confirmacion|date:"d/m/Y H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if movimiento.notas %}
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Notas</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ movimiento.notas|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Detalles del Movimiento</h5>
+            </div>
+            <div class="card-body">
+                {% if movimiento.detalles.exists %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Cantidad</th>
+                                <th>Lote</th>
+                                <th>Costo Unitario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in movimiento.detalles.all %}
+                            <tr>
+                                <td>{{ detalle.material.nombre }}</td>
+                                <td>{{ detalle.cantidad }}</td>
+                                <td>{{ detalle.lote|default:"—" }}</td>
+                                <td>
+                                    {% if detalle.costo_unitario %}
+                                        ${{ detalle.costo_unitario|floatformat:2|intcomma }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay detalles para este movimiento.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'materiales/base_materiales.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Movimientos de Almacén</h2>
+    <div class="btn-group" role="group">
+        <a href="{% url 'materiales:entrada_mercancia' %}" class="btn btn-success"> Entrada</a>
+        <a href="{% url 'materiales:salida_mercancia' %}" class="btn btn-danger"> Salida</a>
+        <a href="{% url 'materiales:transferencia_mercancia' %}" class="btn btn-warning"> Transferencia</a>
+        <a href="{% url 'materiales:ajuste_inventario' %}" class="btn btn-info"> Ajuste</a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4 g-2">
+    <div class="col-md-3">
+        <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="tipo">
+            <option value="">Todos los tipos</option>
+            {% for value, label in tipos %}
+            <option value="{{ value }}" {% if tipo_filtro == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" name="almacen">
+            <option value="">Todos los almacenes</option>
+            {% for almacen in almacenes %}
+            <option value="{{ almacen.id }}" {% if almacen_filtro == almacen.id|stringformat:"i" %}selected{% endif %}>{{ almacen.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="date" class="form-control" name="fecha_desde" value="{{ fecha_desde }}">
+    </div>
+    <div class="col-md-2">
+        <input type="date" class="form-control" name="fecha_hasta" value="{{ fecha_hasta }}">
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</div>
+
+{% if movimientos %}
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Documento</th>
+                <th>Almacén Origen</th>
+                <th>Almacén Destino</th>
+                <th>Items</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in movimientos %}
+            <tr class="{% if movimiento.estado == 'confirmado' %}table-success{% elif movimiento.estado == 'borrador' %}table-warning{% else %}table-danger{% endif %}">
+                <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <span class="badge bg-{% if movimiento.tipo|slice:":7" == "entrada" %}success{% elif movimiento.tipo|slice:":6" == "salida" %}danger{% elif movimiento.tipo == "transferencia" %}info{% else %}secondary{% endif %}">
+                        {{ movimiento.get_tipo_display }}
+                    </span>
+                </td>
+                <td>{{ movimiento.documento_referencia|default:"—" }}</td>
+                <td>
+                    {% if movimiento.almacen_origen %}
+                        {{ movimiento.almacen_origen.nombre }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if movimiento.almacen_destino %}
+                        {{ movimiento.almacen_destino.nombre }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ movimiento.detalles.count }}</td>
+                <td>
+                    <span class="badge bg-{% if movimiento.estado == 'confirmado' %}success{% elif movimiento.estado == 'borrador' %}warning{% else %}danger{% endif %}">
+                        {{ movimiento.get_estado_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'materiales:detalle_movimiento' movimiento.pk %}" class="btn btn-sm btn-info">Ver</a>
+                    {% if movimiento.estado == 'borrador' %}
+                        <a href="{% url 'materiales:editar_movimiento' movimiento.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'materiales:confirmar_movimiento' movimiento.pk %}" class="btn btn-sm btn-success">Confirmar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    {% if movimientos.has_other_pages %}
+    <nav aria-label="Paginación de movimientos">
+        <ul class="pagination justify-content-center">
+            {% if movimientos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro|urlencode }}{% endif %}{% if almacen_filtro %}&almacen={{ almacen_filtro|urlencode }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde|urlencode }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta|urlencode }}{% endif %}" aria-label="Primera">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ movimientos.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro|urlencode }}{% endif %}{% if almacen_filtro %}&almacen={{ almacen_filtro|urlencode }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde|urlencode }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta|urlencode }}{% endif %}" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    Página {{ movimientos.number }} de {{ movimientos.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if movimientos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ movimientos.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro|urlencode }}{% endif %}{% if almacen_filtro %}&almacen={{ almacen_filtro|urlencode }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde|urlencode }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta|urlencode }}{% endif %}" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ movimientos.paginator.num_pages }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro|urlencode }}{% endif %}{% if almacen_filtro %}&almacen={{ almacen_filtro|urlencode }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde|urlencode }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta|urlencode }}{% endif %}" aria-label="Última">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% else %}
+<div class="alert alert-info">No hay movimientos de almacén que coincidan con los criterios de búsqueda.</div>
+{% endif %}
+{% endblock %}

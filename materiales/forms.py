@@ -1,6 +1,5 @@
-# materiales/forms.py
 from django import forms
-from .models import Material, CategoriaMaterial, Almacen
+from .models import Material, CategoriaMaterial, Almacen, MovimientoAlmacen, DetalleMovimientoAlmacen
 
 class MaterialForm(forms.ModelForm):
     class Meta:
@@ -60,4 +59,111 @@ class AlmacenForm(forms.ModelForm):
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 3}),
             'activo': forms.CheckboxInput(),
+        }
+
+# Movimiento de almacen
+
+class MovimientoAlmacenForm(forms.ModelForm):
+    class Meta:
+        model = MovimientoAlmacen
+        fields = ['almacen_origen', 'documento_referencia', 'notas']
+        widgets = {
+            'almacen_origen': forms.Select(attrs={'class': 'form-control'}),
+            'documento_referencia': forms.TextInput(attrs={'class': 'form-control'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        tipo = kwargs.pop('tipo', None)
+        super().__init__(*args, **kwargs)
+
+        if tipo == 'entrada':
+            self.fields['almacen_destino'] = forms.ModelChoiceField(
+                queryset=Almacen.objects.filter(activo=True),
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                label="Almacén de Destino"
+            )
+        elif tipo == 'salida':
+            self.fields['almacen_origen'] = forms.ModelChoiceField(
+                queryset=Almacen.objects.filter(activo=True),
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                label="Almacén de Origen"
+            )
+        elif tipo == 'transferencia':
+            self.fields['almacen_origen'] = forms.ModelChoiceField(
+                queryset=Almacen.objects.filter(activo=True),
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                label="Almacén de Origen"
+            )
+            self.fields['almacen_destino'] = forms.ModelChoiceField(
+                queryset=Almacen.objects.filter(activo=True),
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                label="Almacén de Destino"
+            )
+        elif tipo == 'ajuste':
+            self.fields['almacen_origen'] = forms.ModelChoiceField(
+                queryset=Almacen.objects.filter(activo=True),
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                label="Almacén"
+            )
+
+class DetalleMovimientoForm(forms.ModelForm):
+    class Meta:
+        model = DetalleMovimientoAlmacen
+        fields = ['material', 'cantidad', 'lote', 'costo_unitario']
+        widgets = {
+            'material': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'lote': forms.TextInput(attrs={'class': 'form-control'}),
+            'costo_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+DetalleMovimientoFormSet = forms.inlineformset_factory(
+    MovimientoAlmacen,
+    DetalleMovimientoAlmacen,
+    form=DetalleMovimientoForm,
+    extra=1,
+    can_delete=True
+)
+
+class EntradaMovimientoForm(forms.ModelForm):
+    class Meta:
+        model = MovimientoAlmacen
+        fields = ['almacen_destino', 'documento_referencia', 'notas']
+        widgets = {
+            'almacen_destino': forms.Select(attrs={'class': 'form-control'}),
+            'documento_referencia': forms.TextInput(attrs={'class': 'form-control'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'almacen_destino': 'Almacén de Destino',
+        }
+
+class SalidaMovimientoForm(forms.ModelForm):
+    class Meta:
+        model = MovimientoAlmacen
+        fields = ['almacen_origen', 'documento_referencia', 'notas']
+        widgets = {
+            'almacen_origen': forms.Select(attrs={'class': 'form-control'}),
+            'documento_referencia': forms.TextInput(attrs={'class': 'form-control'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'almacen_origen': 'Almacén de Origen',
+        }
+
+class TransferenciaMovimientoForm(forms.ModelForm):
+    class Meta:
+        model = MovimientoAlmacen
+        fields = ['almacen_origen', 'almacen_destino', 'documento_referencia', 'notas']
+        widgets = {
+            'almacen_origen': forms.Select(attrs={'class': 'form-control'}),
+            'almacen_destino': forms.Select(attrs={'class': 'form-control'}),
+            'documento_referencia': forms.TextInput(attrs={'class': 'form-control'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'almacen_origen': 'Almacén de Origen',
+            'almacen_destino': 'Almacén de Destino',
         }

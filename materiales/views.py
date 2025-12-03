@@ -1,16 +1,20 @@
-# materiales/views.py
+from django.core.paginator import Paginator
 from django.db import models
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Material, CategoriaMaterial, Almacen, Material, StockAlmacen
-from .forms import MaterialForm, CategoriaMaterialForm, AlmacenForm
+from django.db import transaction
+from .models import Material, CategoriaMaterial, Almacen, Material, StockAlmacen, MovimientoAlmacen, DetalleMovimientoAlmacen
+from .forms import MaterialForm, CategoriaMaterialForm, AlmacenForm, MovimientoAlmacenForm, DetalleMovimientoFormSet, EntradaMovimientoForm, SalidaMovimientoForm, TransferenciaMovimientoForm
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
-from django.db.models import Q, Sum, Case, When, DecimalField, Value
+from django.db.models import Q, Sum, Case, When, DecimalField, Value, F
 from django.db.models.functions import Coalesce
+from decimal import Decimal
+from django.db.models import Value, CharField, OuterRef, Subquery
+
 
 @login_required
 @permission_required('compras.view_proveedor', raise_exception=True)
@@ -217,3 +221,337 @@ def reporte_existencias(request):
         'material_query': material_query,
         'total_cantidad': total_cantidad,
     })
+
+# MOVIMIENTOS DE ALMACEN
+
+@login_required
+@permission_required('materiales.view_movimientoalmacen', raise_exception=True)
+def movimiento_list(request):
+    """Lista de movimientos de almacén con filtros."""
+    movimientos = MovimientoAlmacen.objects.select_related(
+        'almacen_origen', 'almacen_destino', 'creado_por'
+    ).prefetch_related('detalles').all()
+
+    # Filtros
+    search = request.GET.get('search')
+    tipo = request.GET.get('tipo')
+    almacen = request.GET.get('almacen')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+
+    if search:
+        movimientos = movimientos.filter(
+            Q(documento_referencia__icontains=search) |
+            Q(notas__icontains=search)
+        )
+    if tipo:
+        movimientos = movimientos.filter(tipo=tipo)
+    if almacen:
+        movimientos = movimientos.filter(
+            Q(almacen_origen_id=almacen) | Q(almacen_destino_id=almacen)
+        )
+    if fecha_desde:
+        movimientos = movimientos.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        movimientos = movimientos.filter(fecha__lte=fecha_hasta)
+
+    movimientos = movimientos.order_by('-fecha')
+
+    # Paginación
+    paginator = Paginator(movimientos, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Opciones para filtros
+    tipos = MovimientoAlmacen._meta.get_field('tipo').choices
+    almacenes = Almacen.objects.filter(activo=True)
+
+    return render(request, 'materiales/almacen/movimiento_list.html', {
+        'movimientos': page_obj,
+        'tipos': tipos,
+        'almacenes': almacenes,
+        'search_query': search,
+        'tipo_filtro': tipo,
+        'almacen_filtro': almacen,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+    })
+
+@login_required
+@permission_required('materiales.add_movimientoalmacen', raise_exception=True)
+def ajuste_inventario(request):
+    """Crear ajuste de inventario (positivo o negativo)."""
+    if request.method == 'POST':
+        tipo_ajuste = request.POST.get('tipo_ajuste', 'positivo')
+        form = MovimientoAlmacenForm(request.POST, tipo='ajuste')
+        formset = DetalleMovimientoFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    movimiento = form.save(commit=False)
+                    movimiento.tipo = 'entrada_ajuste_positivo' if tipo_ajuste == 'positivo' else 'salida_ajuste_negativo'
+                    movimiento.creado_por = request.user
+
+                    if not movimiento.almacen_origen:
+                        raise ValueError("Almacén es requerido para ajustes")
+
+                    movimiento.almacen_destino = movimiento.almacen_origen
+                    movimiento.save()
+
+                    detalles = formset.save(commit=False)
+                    for detalle in detalles:
+                        detalle.movimiento = movimiento
+                        detalle.save()
+
+                    movimiento.confirmar(request.user)
+                    messages.success(request, f"Ajuste {tipo_ajuste} registrado exitosamente.")
+                    return redirect('materiales:detalle_movimiento', pk=movimiento.pk)
+            except Exception as e:
+                messages.error(request, f"Error al registrar el ajuste: {str(e)}")
+    else:
+        form = MovimientoAlmacenForm(tipo='ajuste')
+        formset = DetalleMovimientoFormSet()
+
+    almacenes = Almacen.objects.filter(activo=True)
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+
+    return render(request, 'materiales/almacen/ajuste/ajuste_form.html', {
+        'form': form,
+        'formset': formset,
+        'almacenes': almacenes,
+        'materiales': materiales,
+    })
+
+@login_required
+@permission_required('materiales.view_movimientoalmacen', raise_exception=True)
+def detalle_movimiento(request, pk):
+    """Ver detalle de un movimiento de almacén."""
+    movimiento = get_object_or_404(MovimientoAlmacen, pk=pk)
+    return render(request, 'materiales/almacen/movimiento_detail.html', {
+        'movimiento': movimiento
+    })
+
+@login_required
+@permission_required('materiales.add_movimientoalmacen', raise_exception=True)
+def entrada_mercancia(request):
+    """Crear entrada de mercancía por orden de compra."""
+    if request.method == 'POST':
+        form = EntradaMovimientoForm(request.POST)
+        formset = DetalleMovimientoFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    movimiento = form.save(commit=False)
+                    movimiento.tipo = 'entrada_compra'
+                    movimiento.creado_por = request.user
+                    movimiento.save()
+
+                    detalles = formset.save(commit=False)
+                    for detalle in detalles:
+                        detalle.movimiento = movimiento
+                        detalle.save()
+
+                    movimiento.confirmar(request.user)
+                    messages.success(request, "Entrada de mercancía registrada exitosamente.")
+                    return redirect('materiales:detalle_movimiento', pk=movimiento.pk)
+            except Exception as e:
+                messages.error(request, f"Error al registrar la entrada: {str(e)}")
+    else:
+        form = EntradaMovimientoForm()
+        formset = DetalleMovimientoFormSet()
+
+    almacenes = Almacen.objects.filter(activo=True)
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+
+    return render(request, 'materiales/almacen/entrada/entrada_form.html', {
+        'form': form,
+        'formset': formset,
+        'almacenes': almacenes,
+        'materiales': materiales,
+    })
+
+
+@login_required
+@permission_required('materiales.add_movimientoalmacen', raise_exception=True)
+def salida_mercancia(request):
+    """Crear salida de mercancía por venta o devolución."""
+    if request.method == 'POST':
+        form = SalidaMovimientoForm(request.POST)
+        formset = DetalleMovimientoFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    movimiento = form.save(commit=False)
+                    movimiento.tipo = 'salida_venta'
+                    movimiento.creado_por = request.user
+                    movimiento.save()
+
+                    detalles = formset.save(commit=False)
+                    for detalle in detalles:
+                        detalle.movimiento = movimiento
+                        detalle.save()
+
+                    movimiento.confirmar(request.user)
+                    messages.success(request, "Salida de mercancía registrada exitosamente.")
+                    return redirect('materiales:detalle_movimiento', pk=movimiento.pk)
+            except Exception as e:
+                messages.error(request, f"Error al registrar la salida: {str(e)}")
+    else:
+        form = SalidaMovimientoForm()
+        formset = DetalleMovimientoFormSet()
+
+    almacenes = Almacen.objects.filter(activo=True)
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+
+    return render(request, 'materiales/almacen/salida/salida_form.html', {
+        'form': form,
+        'formset': formset,
+        'almacenes': almacenes,
+        'materiales': materiales,
+    })
+
+
+@login_required
+@permission_required('materiales.add_movimientoalmacen', raise_exception=True)
+def transferencia_mercancia(request):
+    """Crear transferencia entre almacenes."""
+    if request.method == 'POST':
+        form = TransferenciaMovimientoForm(request.POST)
+        formset = DetalleMovimientoFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    movimiento = form.save(commit=False)
+                    movimiento.tipo = 'transferencia'
+                    movimiento.creado_por = request.user
+                    movimiento.save()
+
+                    detalles = formset.save(commit=False)
+                    for detalle in detalles:
+                        detalle.movimiento = movimiento
+                        detalle.save()
+
+                    movimiento.confirmar(request.user)
+                    messages.success(request, "Transferencia registrada exitosamente.")
+                    return redirect('materiales:detalle_movimiento', pk=movimiento.pk)
+            except Exception as e:
+                messages.error(request, f"Error al registrar la transferencia: {str(e)}")
+    else:
+        form = TransferenciaMovimientoForm()
+        formset = DetalleMovimientoFormSet()
+
+    almacenes = Almacen.objects.filter(activo=True)
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+
+    return render(request, 'materiales/almacen/transferencia/transferencia_form.html', {
+        'form': form,
+        'formset': formset,
+        'almacenes': almacenes,
+        'materiales': materiales,
+    })
+
+# Reportes
+
+@login_required
+@permission_required('materiales.view_stockalmacen', raise_exception=True)
+def reporte_kardex(request):
+    """Reporte de Kardex por material y almacén."""
+    movimientos = []
+    material_seleccionado = None
+    almacen_seleccionado = None
+    saldo_inicial = Decimal('0')
+    saldo_final = Decimal('0')
+
+    material_id = request.GET.get('material')
+    almacen_id = request.GET.get('almacen')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+
+    if material_id and almacen_id:
+        try:
+            # Obtener el material y almacén
+            material_seleccionado = get_object_or_404(Material, id=material_id)
+            almacen_seleccionado = get_object_or_404(Almacen, id=almacen_id)
+
+            # Obtener todos los movimientos relacionados con este material y almacén
+            entradas = []
+            salidas = []
+
+            # Buscar entradas (material entra al almacén)
+            movimientos_entrada = MovimientoAlmacen.objects.filter(
+                Q(almacen_destino=almacen_seleccionado) & Q(tipo__startswith='entrada') |
+                Q(almacen_destino=almacen_seleccionado) & Q(tipo='transferencia'),
+                detalles__material=material_seleccionado,
+                estado='confirmado'
+            ).prefetch_related('detalles', 'creado_por').order_by('fecha')
+
+            for mov in movimientos_entrada:
+                for detalle in mov.detalles.all():
+                    if detalle.material == material_seleccionado:
+                        entradas.append({
+                            'fecha': mov.fecha,
+                            'tipo': mov.get_tipo_display(),
+                            'tipo_movimiento': 'entrada',
+                            'documento_referencia': mov.documento_referencia,
+                            'cantidad': detalle.cantidad,
+                            'notas': mov.notas,
+                            'usuario': mov.creado_por.username if mov.creado_por else 'Sistema'
+                        })
+
+            # Buscar salidas (material sale del almacén)
+            movimientos_salida = MovimientoAlmacen.objects.filter(
+                Q(almacen_origen=almacen_seleccionado) & Q(tipo__startswith='salida') |
+                Q(almacen_origen=almacen_seleccionado) & Q(tipo='transferencia'),
+                detalles__material=material_seleccionado,
+                estado='confirmado'
+            ).prefetch_related('detalles', 'creado_por').order_by('fecha')
+
+            for mov in movimientos_salida:
+                for detalle in mov.detalles.all():
+                    if detalle.material == material_seleccionado:
+                        salidas.append({
+                            'fecha': mov.fecha,
+                            'tipo': mov.get_tipo_display(),
+                            'tipo_movimiento': 'salida',
+                            'documento_referencia': mov.documento_referencia,
+                            'cantidad': detalle.cantidad,
+                            'notas': mov.notas,
+                            'usuario': mov.creado_por.username if mov.creado_por else 'Sistema'
+                        })
+
+            # Combinar y ordenar todos los movimientos
+            todos_movimientos = entradas + salidas
+            todos_movimientos.sort(key=lambda x: x['fecha'])
+
+            # Calcular saldo acumulado
+            saldo = Decimal('0')
+            for movimiento in todos_movimientos:
+                if movimiento['tipo_movimiento'] == 'entrada':
+                    saldo += movimiento['cantidad']
+                else:
+                    saldo -= movimiento['cantidad']
+                movimiento['saldo'] = saldo
+
+            movimientos = todos_movimientos
+            saldo_final = saldo
+
+        except Exception as e:
+            messages.error(request, f"Error al generar el kardex: {str(e)}")
+
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+    almacenes = Almacen.objects.filter(activo=True)
+
+    return render(request, 'materiales/reportes/kardex.html', {
+        'movimientos': movimientos,
+        'materiales': materiales,
+        'almacenes': almacenes,
+        'material_seleccionado': material_seleccionado,
+        'almacen_seleccionado': almacen_seleccionado,
+        'saldo_inicial': saldo_inicial,
+        'saldo_final': saldo_final,
+    })
+

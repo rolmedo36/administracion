@@ -1,0 +1,89 @@
+{% extends 'materiales/base_materiales.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h4>Nuevo Ajuste de Inventario</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Importante:</strong>
+                    <ul>
+                        <li>Para <strong>ajustes positivos</strong> (más stock), use tipo "Ajuste Positivo"</li>
+                        <li>Para <strong>ajustes negativos</strong> (menos stock), use tipo "Ajuste Negativo"</li>
+                        <li>Los ajustes negativos requieren stock suficiente en el almacén</li>
+                    </ul>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Tipo de ajuste -->
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Ajuste</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo_ajuste" id="tipo_positivo" value="positivo" checked>
+                            <label class="form-check-label" for="tipo_positivo">Ajuste Positivo (+)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo_ajuste" id="tipo_negativo" value="negativo">
+                            <label class="form-check-label" for="tipo_negativo">Ajuste Negativo (-)</label>
+                        </div>
+                    </div>
+
+                    <!-- Almacén (campo esencial) -->
+                    <div class="mb-3">
+                        {{ form.almacen_origen.label_tag }}
+                        {{ form.almacen_origen }}
+                    </div>
+
+                    <!-- Documento de referencia -->
+                    <div class="mb-3">
+                        {{ form.documento_referencia.label_tag }}
+                        {{ form.documento_referencia }}
+                        <div class="form-text">Ej: CONTEO-001, MERMA-001, AJUSTE-001</div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="mb-3">
+                        {{ form.notas.label_tag }}
+                        {{ form.notas }}
+                    </div>
+
+                    <!-- Detalles -->
+                    <h5>Detalles del Ajuste</h5>
+                    {{ formset.management_form }}
+                    <div id="detalles-container">
+                        {% for form in formset %}
+                        <div class="row mb-3 detalle-row">
+                            <div class="col-md-4">
+                                {{ form.material.label_tag }}
+                                {{ form.material }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.cantidad.label_tag }}
+                                {{ form.cantidad }}
+                            </div>
+<!--                            <div class="col-md-2">-->
+<!--                                {{ form.lote.label_tag }}-->
+<!--                                {{ form.lote }}-->
+<!--                            </div>-->
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-line">Quitar</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-outline-primary mb-3" id="add-line">+ Agregar Línea</button>
+
+                    <button type="submit" class="btn btn-warning">Registrar Ajuste</button>
+                    <a href="{% url 'materiales:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

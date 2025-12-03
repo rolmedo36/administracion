@@ -1,0 +1,71 @@
+{% extends 'materiales/base_materiales.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>Nueva Entrada de Mercancía</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Documento de referencia -->
+                    <div class="mb-3">
+                        {{ form.documento_referencia.label_tag }}
+                        {{ form.documento_referencia }}
+                        <div class="form-text">Ej: OC-001, DEV-001, AJUSTE-001</div>
+                    </div>
+
+                    <!-- Almacén destino -->
+                    <div class="mb-3">
+                        {{ form.almacen_destino.label_tag }}
+                        {{ form.almacen_destino }}
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="mb-3">
+                        {{ form.notas.label_tag }}
+                        {{ form.notas }}
+                    </div>
+
+                    <!-- Detalles -->
+                    <h5>Detalles de la Entrada</h5>
+                    {{ formset.management_form }}
+                    <div id="detalles-container">
+                        {% for form in formset %}
+                        <div class="row mb-3 detalle-row">
+                            <div class="col-md-4">
+                                {{ form.material.label_tag }}
+                                {{ form.material }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.cantidad.label_tag }}
+                                {{ form.cantidad }}
+                            </div>
+<!--                            <div class="col-md-2">-->
+<!--                                {{ form.lote.label_tag }}-->
+<!--                                {{ form.lote }}-->
+<!--                            </div>-->
+                            <div class="col-md-2">
+                                {{ form.costo_unitario.label_tag }}
+                                {{ form.costo_unitario }}
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-line">Quitar</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-outline-primary mb-3" id="add-line">+ Agregar Línea</button>
+
+                    <button type="submit" class="btn btn-success">Registrar Entrada</button>
+                    <a href="{% url 'materiales:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

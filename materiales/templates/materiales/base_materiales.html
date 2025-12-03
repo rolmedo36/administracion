@@ -51,6 +51,43 @@
                                 Existencias
                             </a>
                         </li>
+                        <li>
+                            <a class="dropdown-item"
+                               href="{% url 'materiales:reporte_kardex' %}">
+                                Kardex
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="nav-item dropdown ms-3">
+                    <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Transacciones
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
+                        <li>
+                            <a class="dropdown-item"
+                               href="{% url 'materiales:entrada_mercancia' %}">
+                                Entrada Mercancías
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               href="{% url 'materiales:salida_mercancia' %}">
+                                Salida Mercancías
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               href="{% url 'materiales:transferencia_mercancia' %}">
+                                Transferencias
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               href="{% url 'materiales:ajuste_inventario' %}">
+                                Ajustes
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
