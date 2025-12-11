@@ -28,6 +28,7 @@
                 <th>Fecha</th>
                 <th>Estado</th>
                 <th>Total</th>
+                <th>Notas</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -43,6 +44,8 @@
                     </span>
                 </td>
                 <td>${{ oc.total|floatformat:2|intcomma }}</td>
+                <td>{% if oc.notas %} {{ oc.notas }} {% endif %}</td>
+
                 <td>
                     <a href="{% url 'compras:ordencompra_detail' oc.pk %}" class="btn btn-sm btn-info">Ver</a>
                     {% if oc.estado == 'confirmada' and perms.compras.change_ordencompra %}

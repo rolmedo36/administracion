@@ -38,6 +38,7 @@ class OrdenCompra(models.Model):
     total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    notas = models.TextField(blank=True, null=True, help_text="Comentarios")
 
     def get_estado_badge_class(self):
         if self.estado == 'borrador':

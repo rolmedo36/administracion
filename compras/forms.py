@@ -16,11 +16,16 @@ class ProveedorForm(forms.ModelForm):
 class OrdenCompraForm(forms.ModelForm):
     class Meta:
         model = OrdenCompra
-        fields = ['numero', 'proveedor', 'estado']
+        fields = ['numero', 'proveedor', 'estado', 'notas']
         widgets = {
             'numero': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'proveedor': forms.Select(attrs={'class': 'd-none'}),
             'estado': forms.Select(attrs={'class': 'form-control'}),
+            'notas': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Notas opcionales'
+            }),
         }
 
     def __init__(self, *args, **kwargs):

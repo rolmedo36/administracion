@@ -39,6 +39,15 @@
                     </span>
                 </p>
             </div>
+            <div class="col-md-12">
+                <p><strong>Notas:</strong><br>
+                    {% if orden.notas %}
+                        {{ orden.notas|linebreaks }}
+                    {% else %}
+                        <span class="text-muted">Sin notas.</span>
+                    {% endif %}
+                </p>
+            </div>
             <div class="col-md-4">
                 <p><strong>Creado por:</strong><br> {{ orden.creado_por.username }}</p>
             </div>
