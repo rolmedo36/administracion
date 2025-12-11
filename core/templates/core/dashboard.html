@@ -41,15 +41,10 @@
 
                 <!-- Tesorería -->
                 <div class="nav-item dropdown">
-                    <a class="nav-link text-dark d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                    <a class="nav-link text-dark d-flex align-items-center" href="{% url 'flujocaja:flujocaja_index' %}" >
                         <img src="{% static 'core/img/icono.png' %}" alt="Finanzas" class="me-2" style="width: 20px; height: 20px;">
                         Tesorería
                     </a>
-                    <ul class="dropdown-menu bg-dark border-0 mt-2">
-                        <li><a class="dropdown-item text-white" href="{% url 'flujocaja:flujocaja_index' %}">Flujo de Caja</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-white" href="{% url 'creditos:credito_index' %}">Créditos</a></li>
-                    </ul>
                 </div>
 
                 <!-- Materiales -->
