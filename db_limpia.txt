@@ -1,0 +1,16 @@
+delete from ventas_pedidoventa;
+delete from ventas_cotizacionventa;
+delete from ventas_cuentaporcobrar;
+delete from ventas_detallecotizacion;
+delete from ventas_detallefactura;
+delete from ventas_detallepedido;
+delete from ventas_facturaventa;
+delete from ventas_pagocuentaporcobrar;
+delete from ventas_pedidoventa;
+delete from materiales_detallemovimientoalmacen;
+delete from materiales_movimientoalmacen;
+delete from materiales_stockalmacen;
+delete from compras_cuentaporpagar;
+delete from compras_detalleordencompra;
+delete from compras_ordencompra;
+delete from compras_pagocuentaporpagar;

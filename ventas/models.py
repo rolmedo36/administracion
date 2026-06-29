@@ -94,6 +94,17 @@ class DetallePedido(models.Model):
     descuento = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     subtotal = models.DecimalField(max_digits=14, decimal_places=2, default=0)
 
+    def save(self, *args, **kwargs):
+        # 👇 Calcular subtotal automáticamente antes de guardar
+        subtotal_bruto = self.cantidad_solicitada * self.precio_unitario
+        descuento_monto = subtotal_bruto * (self.descuento / 100)
+        self.subtotal = subtotal_bruto - descuento_monto
+        super().save(*args, **kwargs)
+
+    @property
+    def pendiente_surtir(self):
+        return self.cantidad_solicitada - self.cantidad_surtida
+
     @property
     def pendiente_surtir(self):
         return self.cantidad_solicitada - self.cantidad_surtida

@@ -110,7 +110,9 @@ def surtir_pedido(pedido, usuario, almacen_id=None):
             subtotal=subtotal_total,
             iva=iva_total,
             total=subtotal_total + iva_total,
-            creado_por=usuario
+            creado_por=usuario,
+            fecha=timezone.now().date()
+
         )
 
         # Crear detalles de factura
