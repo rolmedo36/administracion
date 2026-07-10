@@ -12,13 +12,19 @@ from django.db.models import Sum
 @login_required
 @permission_required('creditos.view_creditoproveedor', raise_exception=True)
 def credito_index(request):
-    return render(request, 'creditos/credito_index.html', {'titulo': 'Créditos'})
+    return render(request, 'creditos/credito_index.html', {
+        'titulo': 'Créditos',
+        'menu_template': 'core/menus/menu_creditos.html',
+    })
 
 @login_required
 @permission_required('creditos.view_creditoproveedor', raise_exception=True)
 def credito_list(request):
     creditos = CreditoProveedor.objects.select_related('proveedor').all()
-    return render(request, 'creditos/credito_list.html', {'creditos': creditos})
+    return render(request, 'creditos/credito_list.html', {
+        'creditos': creditos,
+        'menu_template': 'core/menus/menu_creditos.html',
+    })
 
 
 @login_required
@@ -53,14 +59,20 @@ def credito_create(request):
     else:
         form = CreditoProveedorForm()
 
-    return render(request, 'creditos/credito_form.html', {'form': form})
+    return render(request, 'creditos/credito_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_creditos.html',
+    })
 
 
 @login_required
 @permission_required('creditos.view_creditoproveedor', raise_exception=True)
 def credito_detail(request, pk):
     credito = get_object_or_404(CreditoProveedor, pk=pk)
-    return render(request, 'creditos/credito_detail.html', {'credito': credito})
+    return render(request, 'creditos/credito_detail.html', {
+        'credito': credito,
+        'menu_template': 'core/menus/menu_creditos.html',
+    })
 
 
 @login_required
@@ -89,7 +101,8 @@ def registrar_pago_credito(request, amortizacion_id):
 
     return render(request, 'creditos/pago_credito_form.html', {
         'form': form,
-        'amortizacion': amortizacion
+        'amortizacion': amortizacion,
+        'menu_template': 'core/menus/menu_creditos.html',
     })
 
 
@@ -112,11 +125,15 @@ def reporte_vencimientos(request):
         'vencimientos': vencimientos,
         'fecha_hasta': fecha_hasta,
         'total_monto': total_monto,
-        'today': date.today(),  # Para resaltar vencidos
+        'today': date.today(),
+        'menu_template': 'core/menus/menu_creditos.html',
     })
 
 @login_required
 @permission_required('creditos.view_pagocredito', raise_exception=True)
 def detalle_pago(request, pago_id):
     pago = get_object_or_404(PagoCredito, id=pago_id)
-    return render(request, 'creditos/pago_credito_detail.html', {'pago': pago})
+    return render(request, 'creditos/pago_credito_detail.html', {
+        'pago': pago,
+        'menu_template': 'core/menus/menu_creditos.html',
+    })

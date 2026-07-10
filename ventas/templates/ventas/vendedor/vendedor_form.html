@@ -1,0 +1,95 @@
+<!-- ventas/templates/ventas/vendedor/vendedor_form.html -->
+{% extends 'ventas/base_ventas.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>{% if object %}Editar Vendedor{% else %}Nuevo Vendedor{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Campos del usuario -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.username.label_tag }}
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.password.label_tag }}
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger">{{ form.password.errors }}</div>
+                            {% endif %}
+                            {% if object %}
+                                <div class="form-text">Deje en blanco para mantener la contraseña actual</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.first_name.label_tag }}
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.last_name.label_tag }}
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <!-- Campos del vendedor -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.codigo.label_tag }}
+                            {{ form.codigo }}
+                            {% if form.codigo.errors %}
+                                <div class="text-danger">{{ form.codigo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.telefono.label_tag }}
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="text-danger">{{ form.telefono.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.activo }}
+                        {{ form.activo.label_tag }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        {% if object %}Actualizar Vendedor{% else %}Crear Vendedor{% endif %}
+                    </button>
+                    <a href="{% url 'ventas:vendedor_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

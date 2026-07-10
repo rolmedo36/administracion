@@ -10,14 +10,20 @@ from collections import defaultdict
 
 @login_required
 def flujocaja_index(request):
-    return render(request, 'flujocaja/flujocaja_index.html', {'titulo': "Flujo Caja"})
+    return render(request, 'flujocaja/flujocaja_index.html', {
+        'titulo': "Flujo Caja",
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 # --- BANCOS ---
 @login_required
 @permission_required('flujocaja.view_banco', raise_exception=True)
 def banco_list(request):
     bancos = Banco.objects.all().order_by('nombre')
-    return render(request, 'flujocaja/banco/banco_list.html', {'bancos': bancos})
+    return render(request, 'flujocaja/banco/banco_list.html', {
+        'bancos': bancos,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.add_banco', raise_exception=True)
@@ -32,7 +38,10 @@ def banco_create(request):
             return redirect('flujocaja:banco_list')
     else:
         form = BancoForm()
-    return render(request, 'flujocaja/banco/banco_form.html', {'form': form})
+    return render(request, 'flujocaja/banco/banco_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.change_banco', raise_exception=True)
@@ -46,7 +55,10 @@ def banco_update(request, pk):
             return redirect('flujocaja:banco_list')
     else:
         form = BancoForm(instance=banco)
-    return render(request, 'flujocaja/banco/banco_form.html', {'form': form})
+    return render(request, 'flujocaja/banco/banco_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.delete_banco', raise_exception=True)
@@ -56,14 +68,20 @@ def banco_delete(request, pk):
         banco.delete()
         messages.success(request, f"Banco {banco.nombre} eliminado.")
         return redirect('flujocaja:banco_list')
-    return render(request, 'flujocaja/banco/banco_confirm_delete.html', {'object': banco})
+    return render(request, 'flujocaja/banco/banco_confirm_delete.html', {
+        'object': banco,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 # --- CUENTAS BANCARIAS ---
 @login_required
 @permission_required('flujocaja.view_cuentabancaria', raise_exception=True)
 def cuentabancaria_list(request):
     cuentas = CuentaBancaria.objects.select_related('banco').all().order_by('banco__nombre', 'numero_cuenta')
-    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_list.html', {'cuentas': cuentas})
+    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_list.html', {
+        'cuentas': cuentas,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.add_cuentabancaria', raise_exception=True)
@@ -78,7 +96,10 @@ def cuentabancaria_create(request):
             return redirect('flujocaja:cuentabancaria_list')
     else:
         form = CuentaBancariaForm()
-    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_form.html', {'form': form})
+    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.change_cuentabancaria', raise_exception=True)
@@ -92,7 +113,10 @@ def cuentabancaria_update(request, pk):
             return redirect('flujocaja:cuentabancaria_list')
     else:
         form = CuentaBancariaForm(instance=cuenta)
-    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_form.html', {'form': form})
+    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.delete_cuentabancaria', raise_exception=True)
@@ -102,7 +126,10 @@ def cuentabancaria_delete(request, pk):
         cuenta.delete()
         messages.success(request, f"Cuenta {cuenta.numero_cuenta} eliminada.")
         return redirect('flujocaja:cuentabancaria_list')
-    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_confirm_delete.html', {'object': cuenta})
+    return render(request, 'flujocaja/cuentabancaria/cuentabancaria_confirm_delete.html', {
+        'object': cuenta,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 # MOVIMIENTOS CAJA
 
@@ -112,7 +139,10 @@ def movimiento_list(request):
     movimientos = MovimientoBancario.objects.select_related(
         'cuenta_bancaria__banco', 'creado_por'
     ).all().order_by('-fecha')
-    return render(request, 'flujocaja/movimiento/movimiento_list.html', {'movimientos': movimientos})
+    return render(request, 'flujocaja/movimiento/movimiento_list.html', {
+        'movimientos': movimientos,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 @login_required
 @permission_required('flujocaja.add_movimientobancario', raise_exception=True)
@@ -133,7 +163,10 @@ def movimiento_create(request):
             messages.error(request, "Por favor corrija los errores en el formulario.")
     else:
         form = MovimientoBancarioForm()
-    return render(request, 'flujocaja/movimiento/movimiento_form.html', {'form': form})
+    return render(request, 'flujocaja/movimiento/movimiento_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_flujocaja.html',
+    })
 
 # REPORTES
 
@@ -162,6 +195,7 @@ def reporte_flujo_diario(request):
         'total_ingresos': total_ingresos,
         'total_egresos': total_egresos,
         'saldo_neto': saldo_neto,
+        'menu_template': 'core/menus/menu_flujocaja.html',
     })
 
 @login_required
@@ -210,6 +244,7 @@ def reporte_flujo_mensual(request):
         'total_egresos': total_egresos,
         'saldo_neto': saldo_neto,
         'flujo_por_dia': flujo_por_dia_con_neto,
+        'menu_template': 'core/menus/menu_flujocaja.html',
     })
 
 
@@ -223,6 +258,7 @@ def reporte_saldo_cuentas(request):
 
     return render(request, 'flujocaja/reportes/saldo_cuentas.html', {
         'cuentas': cuentas,
-        'total_general': total_general
+        'total_general': total_general,
+        'menu_template': 'core/menus/menu_flujocaja.html',
     })
 

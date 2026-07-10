@@ -32,6 +32,13 @@
             <div class="col-md-4">
                 <p><strong>Total:</strong><br> <strong>${{ cotizacion.total|floatformat:2|intcomma }}</strong></p>
             </div>
+            <div class="col-md-4">
+                <p><strong>Vendedor:</strong>
+                    {% if cotizacion.vendedor %}
+                        <br> {{ cotizacion.vendedor }}
+                    {% endif %}
+                </p>
+            </div>
         </div>
     </div>
 </div>

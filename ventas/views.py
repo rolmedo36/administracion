@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db import transaction
-from .models import CotizacionVenta, PedidoVenta, DetallePedido, Cliente, Material, DetalleCotizacion, FacturaVenta, DetalleFactura, CuentaPorCobrar, PagoCuentaPorCobrar
+from .models import CotizacionVenta, PedidoVenta, DetallePedido, Cliente, Material, DetalleCotizacion, FacturaVenta, DetalleFactura, CuentaPorCobrar, PagoCuentaPorCobrar, Vendedor
 from .forms import (
     CotizacionVentaForm,
     DetalleCotizacionFormSet,
@@ -12,7 +12,8 @@ from .forms import (
     FacturaVentaForm,
     DetalleFacturaForm,
     DetalleFacturaFormSet,
-    PagoCuentaPorCobrarForm
+    PagoCuentaPorCobrarForm,
+    VendedorForm,
 )
 from django.http import JsonResponse
 from datetime import date, timedelta
@@ -26,7 +27,8 @@ from core.services.facturadigital_service import timbrar_factura_venta
 def cotizacion_list(request):
     cotizaciones = CotizacionVenta.objects.select_related('cliente').all().order_by('-fecha')
     return render(request, 'ventas/cotizacion/cotizacion_list.html', {
-        'cotizaciones': cotizaciones
+        'cotizaciones': cotizaciones,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -74,6 +76,7 @@ def cotizacion_create(request):
 
     clientes = Cliente.objects.filter(activo=True)
     materiales = Material.objects.filter(activo=True, es_inventariable=True)
+    vendedores = Vendedor.objects.filter(activo=True)
 
     return render(request, 'ventas/cotizacion/cotizacion_form.html', {
         'form': form,
@@ -81,7 +84,9 @@ def cotizacion_create(request):
         'empty_form': formset.empty_form,
         'clientes': clientes,
         'materiales': materiales,
+        'vendedores': vendedores,
         'object': None,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -89,7 +94,8 @@ def cotizacion_create(request):
 def cotizacion_detail(request, pk):
     cotizacion = get_object_or_404(CotizacionVenta, pk=pk)
     return render(request, 'ventas/cotizacion/cotizacion_detail.html', {
-        'cotizacion': cotizacion
+        'cotizacion': cotizacion,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -132,7 +138,8 @@ def cotizacion_convertir_pedido(request, pk):
                     cliente=cotizacion.cliente,
                     cotizacion=cotizacion,
                     creado_por=request.user,
-                    total=cotizacion.total
+                    total=cotizacion.total,
+                    vendedor=cotizacion.vendedor
                 )
 
                 # Crear detalles del pedido
@@ -156,7 +163,8 @@ def cotizacion_convertir_pedido(request, pk):
             messages.error(request, f"Error al convertir a pedido: {str(e)}")
 
     return render(request, 'ventas/cotizacion/cotizacion_confirm_convertir.html', {
-        'cotizacion': cotizacion
+        'cotizacion': cotizacion,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 # PEDIDOS
@@ -166,7 +174,8 @@ def cotizacion_convertir_pedido(request, pk):
 def pedido_list(request):
     pedidos = PedidoVenta.objects.select_related('cliente', 'cotizacion').all().order_by('-fecha')
     return render(request, 'ventas/pedido/pedido_list.html', {
-        'pedidos': pedidos
+        'pedidos': pedidos,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -221,6 +230,7 @@ def pedido_create(request):
         'cotizaciones': cotizaciones,
         'materiales': materiales,
         'object': None,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -228,7 +238,8 @@ def pedido_create(request):
 def pedido_detail(request, pk):
     pedido = get_object_or_404(PedidoVenta, pk=pk)
     return render(request, 'ventas/pedido/pedido_detail.html', {
-        'pedido': pedido
+        'pedido': pedido,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -248,7 +259,8 @@ def pedido_confirmar(request, pk):
         return redirect('ventas:pedido_detail', pk=pk)
 
     return render(request, 'ventas/pedido/pedido_confirm_confirmar.html', {
-        'pedido': pedido
+        'pedido': pedido,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -284,7 +296,8 @@ def pedido_surtir(request, pk):
         messages.error(request, "No hay suficiente stock para surtir el pedido.")
         return render(request, 'ventas/pedido/pedido_surtir_stock_insuficiente.html', {
             'pedido': pedido,
-            'faltante': faltante
+            'faltante': faltante,
+            'menu_template': 'core/menus/menu_cxc.html',
         })
 
     if request.method == 'POST':
@@ -293,7 +306,8 @@ def pedido_surtir(request, pk):
             messages.error(request, "Debe seleccionar un almacén para el surtido.")
             return render(request, 'ventas/pedido/pedido_confirm_surtir.html', {
                 'pedido': pedido,
-                'almacenes': almacenes
+                'almacenes': almacenes,
+                'menu_template': 'core/menus/menu_cxc.html',
             })
 
         try:
@@ -307,7 +321,8 @@ def pedido_surtir(request, pk):
 
     return render(request, 'ventas/pedido/pedido_confirm_surtir.html', {
         'pedido': pedido,
-        'almacenes': almacenes  # ✅ Pasar almacenes al template
+        'almacenes': almacenes,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -338,7 +353,8 @@ def pedido_surtir2(request, pk):
         messages.error(request, "No hay suficiente stock para surtir el pedido.")
         return render(request, 'ventas/pedido/pedido_surtir_stock_insuficiente.html', {
             'pedido': pedido,
-            'faltante': faltante
+            'faltante': faltante,
+            'menu_template': 'core/menus/menu_cxc.html',
         })
 
     if request.method == 'POST':
@@ -352,7 +368,8 @@ def pedido_surtir2(request, pk):
             messages.error(request, f"Error al surtir el pedido: {str(e)}")
 
     return render(request, 'ventas/pedido/pedido_confirm_surtir.html', {
-        'pedido': pedido
+        'pedido': pedido,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -402,7 +419,8 @@ def get_detalles_cotizacion(request, pk):
 def factura_list(request):
     facturas = FacturaVenta.objects.select_related('cliente', 'pedido').all().order_by('-fecha')
     return render(request, 'ventas/factura/factura_list.html', {
-        'facturas': facturas
+        'facturas': facturas,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -470,6 +488,7 @@ def factura_create(request):
         'pedidos': pedidos,
         'materiales': materiales,
         'object': None,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -478,7 +497,8 @@ def factura_create(request):
 def factura_detail(request, pk):
     factura = get_object_or_404(FacturaVenta, pk=pk)
     return render(request, 'ventas/factura/factura_detail.html', {
-        'factura': factura
+        'factura': factura,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -533,6 +553,7 @@ def factura_update(request, pk):
         'pedidos': pedidos,
         'materiales': materiales,
         'object': factura,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -540,7 +561,8 @@ def factura_update(request, pk):
 def factura_print(request, pk):
     factura = get_object_or_404(FacturaVenta, pk=pk)
     return render(request, 'ventas/factura/factura_print.html', {
-        'factura': factura
+        'factura': factura,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 # Cuentas por Pagar
@@ -550,7 +572,8 @@ def factura_print(request, pk):
 def cxc_list(request):
     cxcs = CuentaPorCobrar.objects.select_related('factura__cliente', 'cliente').all().order_by('-fecha_creacion')
     return render(request, 'ventas/cxc/cxc_list.html', {
-        'cxcs': cxcs
+        'cxcs': cxcs,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 @login_required
@@ -561,7 +584,8 @@ def cxc_detail(request, pk):
 
     return render(request, 'ventas/cxc/cxc_detail.html', {
         'cxc': cxc,
-        'total_pagado': total_pagado
+        'total_pagado': total_pagado,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
@@ -606,7 +630,8 @@ def registrar_pago_cxc(request, cxc_id):
 
     return render(request, 'ventas/cxc/pago_cxc_form.html', {
         'form': form,
-        'cxc': cxc
+        'cxc': cxc,
+        'menu_template': 'core/menus/menu_cxc.html',
     })
 
 # REPORTES CXC
@@ -634,6 +659,8 @@ def reporte_cxc_saldos(request):
         'cxcs': cxcs,
         'total_saldo': total_saldo,
         'today': today,
+        'menu_template': 'core/menus/menu_cxc.html',
+
     })
 
 
@@ -692,6 +719,8 @@ def reporte_cxc_aging(request):
         'total_90_mas': total_90_mas,
         'total_general': total_general,
         'today': today,
+        'menu_template': 'core/menus/menu_cxc.html',
+
     })
 
 
@@ -718,6 +747,8 @@ def reporte_cxc_vencimientos(request):
         'total_monto': total_monto,
         'total_saldo': total_saldo,
         'today': today,
+        'menu_template': 'core/menus/menu_cxc.html',
+
     })
 
 
@@ -743,6 +774,8 @@ def reporte_cxc_clientes_mayor_saldo(request):
     return render(request, 'ventas/cxc/reportes/cxc_clientes_mayor_saldo.html', {
         'clientes_saldo': clientes_saldo,
         'total_general': total_general,
+        'menu_template': 'core/menus/menu_cxc.html',
+
     })
 
 # TIMBRADO
@@ -767,5 +800,118 @@ def timbrar_factura(request, pk):
             messages.error(request, f"Error al timbrar la factura: {str(e)}")
 
     return render(request, 'ventas/factura/timbrar_factura.html', {
-        'factura': factura
+        'factura': factura,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+# VENDEDORES
+
+@login_required
+@permission_required('ventas.view_vendedor', raise_exception=True)
+def vendedor_list(request):
+    vendedores = Vendedor.objects.select_related('usuario').all()
+    return render(request, 'ventas/vendedor/vendedor_list.html', {
+        'vendedores': vendedores,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+
+@login_required
+@permission_required('ventas.add_vendedor', raise_exception=True)
+def vendedor_create(request):
+    if request.method == 'POST':
+        form = VendedorForm(request.POST)
+        if form.is_valid():
+            vendedor = form.save()
+            messages.success(request, f"Vendedor {vendedor.nombre_completo} creado exitosamente.")
+            return redirect('ventas:vendedor_detail', pk=vendedor.pk)
+        else:
+            messages.error(request, "Por favor corrija los errores en el formulario.")
+    else:
+        form = VendedorForm()
+
+    return render(request, 'ventas/vendedor/vendedor_form.html', {
+        'form': form,
+        'object': None,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+
+@login_required
+@permission_required('ventas.change_vendedor', raise_exception=True)
+def vendedor_update(request, pk):
+    vendedor = get_object_or_404(Vendedor, pk=pk)
+    if request.method == 'POST':
+        form = VendedorForm(request.POST, instance=vendedor)
+        if form.is_valid():
+            vendedor = form.save()
+            messages.success(request, f"Vendedor {vendedor.nombre_completo} actualizado.")
+            return redirect('ventas:vendedor_detail', pk=vendedor.pk)
+        else:
+            messages.error(request, "Por favor corrija los errores en el formulario.")
+    else:
+        form = VendedorForm(instance=vendedor)
+
+    return render(request, 'ventas/vendedor/vendedor_form.html', {
+        'form': form,
+        'object': vendedor,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+
+@login_required
+@permission_required('ventas.view_vendedor', raise_exception=True)
+def vendedor_detail(request, pk):
+    vendedor = get_object_or_404(Vendedor, pk=pk)
+    return render(request, 'ventas/vendedor/vendedor_detail.html', {
+        'vendedor': vendedor,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+
+@login_required
+@permission_required('ventas.delete_vendedor', raise_exception=True)
+def vendedor_delete(request, pk):
+    vendedor = get_object_or_404(Vendedor, pk=pk)
+    if request.method == 'POST':
+        usuario = vendedor.usuario
+        vendedor.delete()
+        usuario.delete()  # Eliminar también el usuario
+        messages.success(request, f"Vendedor {vendedor.nombre_completo} eliminado.")
+        return redirect('ventas:vendedor_list')
+    return render(request, 'ventas/vendedor/vendedor_confirm_delete.html', {
+        'object': vendedor,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+
+@login_required
+@permission_required('clientes.change_cliente', raise_exception=True)
+def asignar_clientes_vendedor(request, vendedor_id):
+    """Asignar clientes a un vendedor específico."""
+    vendedor = get_object_or_404(Vendedor, id=vendedor_id)
+    clientes_disponibles = Cliente.objects.filter(activo=True)
+
+    if request.method == 'POST':
+        cliente_ids = request.POST.getlist('clientes')
+        vendedor.clientes_asignados.set(cliente_ids)
+        messages.success(request, f"Clientes asignados al vendedor {vendedor.nombre_completo}.")
+        return redirect('ventas:vendedor_detail', pk=vendedor.pk)
+
+    # Clientes ya asignados
+    clientes_asignados = vendedor.clientes_asignados.all()
+    clientes_ids = list(clientes_asignados.values_list('id', flat=True))
+
+    return render(request, 'ventas/vendedor/asignar_clientes.html', {
+        'vendedor': vendedor,
+        'clientes_disponibles': clientes_disponibles,
+        'clientes_asignados_ids': clientes_ids,
+        'menu_template': 'core/menus/menu_cxc.html',
+
     })

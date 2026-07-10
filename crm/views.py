@@ -12,7 +12,10 @@ from decimal import Decimal
 
 @login_required
 def crm_index(request):
-    return render(request, 'crm/crm_index.html', {'titulo': 'CRM'})
+    return render(request, 'crm/crm_index.html', {
+        'titulo': 'CRM',
+        'menu_template': 'core/menus/menu_crm.html',
+    })
 
 @login_required
 @permission_required('crm.view_prospecto', raise_exception=True)
@@ -56,6 +59,7 @@ def prospecto_list(request):
         'origen_filtro': origen,
         'asignado_filtro': asignado,
         'search_query': search,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -84,6 +88,7 @@ def prospecto_create(request):
     return render(request, 'crm/prospecto/prospecto_form.html', {
         'form': form,
         'object': None,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -106,6 +111,7 @@ def prospecto_update(request, pk):
     return render(request, 'crm/prospecto/prospecto_form.html', {
         'form': form,
         'object': prospecto,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -116,6 +122,7 @@ def prospecto_detail(request, pk):
     prospecto = get_object_or_404(Prospecto, pk=pk, activo=True)
     return render(request, 'crm/prospecto/prospecto_detail.html', {
         'prospecto': prospecto,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -131,6 +138,7 @@ def prospecto_delete(request, pk):
         return redirect('crm:prospecto_list')
     return render(request, 'crm/prospecto/prospecto_confirm_delete.html', {
         'object': prospecto,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 # OPORTUNIDADES
@@ -180,6 +188,7 @@ def oportunidad_list(request):
         'etapa_filtro': etapa,
         'asignado_filtro': asignado,
         'search_query': search,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -206,6 +215,7 @@ def oportunidad_create(request):
     return render(request, 'crm/oportunidad/oportunidad_form.html', {
         'form': form,
         'object': None,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -228,6 +238,7 @@ def oportunidad_update(request, pk):
     return render(request, 'crm/oportunidad/oportunidad_form.html', {
         'form': form,
         'object': oportunidad,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -238,6 +249,7 @@ def oportunidad_detail(request, pk):
     oportunidad = get_object_or_404(Oportunidad, pk=pk, activo=True)
     return render(request, 'crm/oportunidad/oportunidad_detail.html', {
         'oportunidad': oportunidad,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -253,6 +265,7 @@ def oportunidad_delete(request, pk):
         return redirect('crm:oportunidad_list')
     return render(request, 'crm/oportunidad/oportunidad_confirm_delete.html', {
         'object': oportunidad,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 # ACTIVIDADES
@@ -305,6 +318,7 @@ def actividad_list(request):
         'estado_filtro': estado,
         'relacionado_filtro': relacionado,
         'search_query': search,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -337,6 +351,7 @@ def actividad_create(request):
     return render(request, 'crm/actividad/actividad_form.html', {
         'form': form,
         'object': None,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -359,6 +374,7 @@ def actividad_update(request, pk):
     return render(request, 'crm/actividad/actividad_form.html', {
         'form': form,
         'object': actividad,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -369,6 +385,7 @@ def actividad_detail(request, pk):
     actividad = get_object_or_404(Actividad, pk=pk)
     return render(request, 'crm/actividad/actividad_detail.html', {
         'actividad': actividad,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -383,6 +400,7 @@ def actividad_delete(request, pk):
         return redirect('crm:actividad_list')
     return render(request, 'crm/actividad/actividad_confirm_delete.html', {
         'object': actividad,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -435,6 +453,7 @@ def plantilla_email_list(request):
         'activa_filtro': activa,
         'categoria_filtro': categoria,
         'search_query': search,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -458,6 +477,7 @@ def plantilla_email_create(request):
     return render(request, 'crm/plantilla_email/plantilla_email_form.html', {
         'form': form,
         'object': None,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -468,6 +488,7 @@ def plantilla_email_detail(request, pk):
     plantilla = get_object_or_404(PlantillaEmail, pk=pk)
     return render(request, 'crm/plantilla_email/plantilla_email_detail.html', {
         'plantilla': plantilla,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -490,6 +511,7 @@ def plantilla_email_update(request, pk):
     return render(request, 'crm/plantilla_email/plantilla_email_form.html', {
         'form': form,
         'object': plantilla,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -504,6 +526,7 @@ def plantilla_email_delete(request, pk):
         return redirect('crm:plantilla_email_list')
     return render(request, 'crm/plantilla_email/plantilla_email_confirm_delete.html', {
         'object': plantilla,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 # REPORTES
@@ -598,6 +621,7 @@ def reporte_pipeline_ventas(request):
         'oportunidades_ganadas': oportunidades_ganadas,
         'oportunidades_perdidas': oportunidades_perdidas,
         'tasa_conversion': tasa_conversion,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 
@@ -651,6 +675,7 @@ def reporte_tasa_conversion(request):
         'tasa_oportunidad_cliente': tasa_oportunidad_cliente,
         'tasa_prospecto_cliente': tasa_prospecto_cliente,
         'conversion_origen': conversion_origen,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 @login_required
@@ -724,6 +749,7 @@ def reporte_rendimiento_comercial(request):
     return render(request, 'crm/reportes/rendimiento_comercial.html', {
         'rendimiento': rendimiento_lista,
         'top_comerciales': top_comerciales,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 @login_required
@@ -784,6 +810,7 @@ def reporte_actividades_seguimiento(request):
         'actividades_completadas': actividades_completadas,
         'tiempo_promedio_respuesta': tiempo_promedio_respuesta,
         'actividades_comercial': actividades_comercial,
+        'menu_template': 'core/menus/menu_crm.html',
     })
 
 @login_required
@@ -839,4 +866,5 @@ def reporte_analisis_origen(request):
     return render(request, 'crm/reportes/analisis_origen.html', {
         'analisis_origen': analisis_origen_lista,
         'origen_efectivo': origen_efectivo,
+        'menu_template': 'core/menus/menu_crm.html',
     })

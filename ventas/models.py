@@ -44,6 +44,8 @@ class CotizacionVenta(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     notas = models.TextField(blank=True, null=True, help_text="Observaciones")
 
+    vendedor = models.ForeignKey('Vendedor', on_delete=models.SET_NULL, null=True, blank=True)
+
     class Meta:
         verbose_name = "Cotización de Venta"
         verbose_name_plural = "Cotizaciones de Venta"
@@ -76,6 +78,8 @@ class PedidoVenta(models.Model):
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     notas = models.TextField(blank=True, null=True, help_text="Observaciones")
+
+    vendedor = models.ForeignKey('Vendedor', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = "Pedido de Venta"
@@ -136,6 +140,7 @@ class FacturaVenta(models.Model):
     ], default='activa')
     notas = models.TextField(blank=True, null=True, help_text="Observaciones")
 
+    vendedor = models.ForeignKey('Vendedor', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = "Factura de Venta"
@@ -214,3 +219,21 @@ class PagoCuentaPorCobrar(models.Model):
 
     def __str__(self):
         return f"Pago de ${self.monto} - {self.cuenta_por_cobrar.factura.folio}"
+
+class Vendedor(models.Model):
+    """Perfil de vendedor asociado a un usuario del sistema."""
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='vendedor')
+    codigo = models.CharField(max_length=20, unique=True)
+    nombre_completo = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=20, blank=True)
+    email = models.EmailField()
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Vendedor"
+        verbose_name_plural = "Vendedores"
+        ordering = ['nombre_completo']
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre_completo}"

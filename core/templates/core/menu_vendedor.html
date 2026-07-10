@@ -1,0 +1,45 @@
+<!-- core/templates/core/menu_vendedor.html -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <img src="{% static 'core/img/logo.png' %}" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+            NCP Software - Vendedor
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <!-- Cotizaciones -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'cotizacion_list' or request.resolver_match.url_name == 'cotizacion_create' %}active{% endif %}"
+                       href="{% url 'ventas:cotizacion_list' %}">
+                        <i class="fas fa-file-invoice"></i> Cotizaciones
+                    </a>
+                </li>
+
+                <!-- Clientes -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'cliente_list' %}active{% endif %}"
+                       href="{% url 'ventas:cliente_list' %}">
+                        <i class="fas fa-users"></i> Mis Clientes
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Dropdown de usuario -->
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user"></i> {{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

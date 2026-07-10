@@ -111,7 +111,8 @@ def surtir_pedido(pedido, usuario, almacen_id=None):
             iva=iva_total,
             total=subtotal_total + iva_total,
             creado_por=usuario,
-            fecha=timezone.now().date()
+            fecha=timezone.now().date(),
+            vendedor=pedido.vendedor,
 
         )
 

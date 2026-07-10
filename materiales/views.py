@@ -14,61 +14,15 @@ from django.db.models import Q, Sum, Case, When, DecimalField, Value, F
 from django.db.models.functions import Coalesce
 from decimal import Decimal
 from django.db.models import Value, CharField, OuterRef, Subquery
-
+from django.urls import reverse
 
 @login_required
 @permission_required('compras.view_proveedor', raise_exception=True)
 def material_index(request):
-    return render(request, 'materiales/material_index.html', {'titulo': "Materiales"})
-
-class MaterialListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = Material
-    template_name = 'materiales/material_list.html'
-    context_object_name = 'materiales'
-    permission_required = 'materiales.view_material'
-    paginate_by = 8
-
-    def get_queryset(self):
-        queryset = Material.objects.all()
-        categoria = self.request.GET.get('categoria')
-        activo = self.request.GET.get('activo')
-        if categoria:
-            queryset = queryset.filter(categoria_id=categoria)
-        if activo is not None:
-            queryset = queryset.filter(activo=(activo == '1'))
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categorias'] = CategoriaMaterial.objects.all()
-        return context
-
-class MaterialCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = Material
-    form_class = MaterialForm
-    template_name = 'materiales/material_form.html'
-    success_url = reverse_lazy('materiales:material_list')
-    permission_required = 'materiales.add_material'
-
-    def form_valid(self, form):
-        form.instance.creado_por = self.request.user
-        return super().form_valid(form)
-
-class MaterialUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = Material
-    form_class = MaterialForm
-    template_name = 'materiales/material_form.html'
-    success_url = reverse_lazy('materiales:material_list')
-    permission_required = 'materiales.change_material'
-
-class MaterialDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = Material
-    template_name = 'materiales/material_confirm_delete.html'
-    success_url = reverse_lazy('materiales:material_list')
-    permission_required = 'materiales.delete_material'
-
-# materiales/views.py (agrega al final)
-
+    return render(request, 'materiales/material_index.html', {
+        'titulo': "Materiales",
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
 
 class CategoriaMaterialListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = CategoriaMaterial
@@ -104,13 +58,190 @@ class CategoriaMaterialDeleteView(LoginRequiredMixin, PermissionRequiredMixin, D
             messages.error(request, "No se puede eliminar esta categoría porque está asociada a uno o más materiales.")
             return redirect(self.success_url)
 
+# MATERIALES
+
+@login_required
+@permission_required('materiales.view_material', raise_exception=True)
+def material_list_view(request):
+    # 1. Obtener el QuerySet base y aplicar filtros
+    queryset = Material.objects.all()
+    categoria = request.GET.get('categoria')
+    activo = request.GET.get('activo')
+
+    if categoria:
+        queryset = queryset.filter(categoria_id=categoria)
+
+    # Asegura que solo filtre si el parámetro 'activo' viene en la URL
+    if activo is not None and activo != '':
+        queryset = queryset.filter(activo=(activo == '1'))
+
+    # 2. Manejar la paginación (paginate_by = 8)
+    paginator = Paginator(queryset, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 3. Construir el contexto
+    context = {
+        'materiales': page_obj,  # Reemplaza al queryset directo para que la plantilla itere sobre la página
+        'page_obj': page_obj,  # Buenas prácticas por si tu template usa {% if page_obj.has_next %}
+        'categorias': CategoriaMaterial.objects.all(),
+        'is_paginated': page_obj.has_other_pages(),
+        'menu_template': 'core/menus/menu_materiales.html',
+
+    }
+
+    return render(request, 'materiales/material_list.html', context)
+
+@login_required
+@permission_required('materiales.add_material', raise_exception=True)
+def material_create_view(request):
+    if request.method == 'POST':
+        form = MaterialForm(request.POST)
+        if form.is_valid():
+            # Guardamos con commit=False para poder modificar la instancia antes de guardarla en la BD
+            material = form.save(commit=False)
+            material.creado_por = request.user  # Reemplaza a form_valid(self, form)
+            material.save()
+
+            # Reemplaza a success_url
+            return redirect(reverse('materiales:material_list'))
+    else:
+        # Si es GET, enviamos el formulario vacío
+        form = MaterialForm()
+
+    return render(request, 'materiales/material_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
+
+@login_required
+@permission_required('materiales.change_material', raise_exception=True)
+def material_update_view(request, pk):
+    # Buscamos el material por su clave primaria (pk) o lanzamos un 404
+    material = get_object_or_404(Material, pk=pk)
+
+    if request.method == 'POST':
+        # Pasamos instance=material para que Django sepa que estamos EDITANDO ese objeto y no creando uno nuevo
+        form = MaterialForm(request.POST, instance=material)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('materiales:material_list'))
+    else:
+        # En el GET, precargamos el formulario con los datos actuales del material
+        form = MaterialForm(instance=material)
+
+    return render(request, 'materiales/material_form.html', {
+        'form': form,
+        'material': material,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
+
+@login_required
+@permission_required('materiales.delete_material', raise_exception=True)
+def material_delete_view(request, pk):
+    # Buscamos el material o lanzamos error 404 si no existe
+    material = get_object_or_404(Material, pk=pk)
+
+    if request.method == 'POST':
+        # Si el usuario confirma la acción (envía el formulario), borramos
+        material.delete()
+        return redirect(reverse('materiales:material_list'))
+
+    # Si es GET, mostramos el template de confirmación enviando el objeto 'object'
+    # (Usamos 'object' porque es el nombre por defecto que busca el template de DeleteView)
+    return render(request, 'materiales/material_confirm_delete.html', {
+        'object': material,
+        'material': material ,
+        'menu_template': 'core/menus/menu_materiales.html',
+
+    })
+
+# CATEGORIAS
+
+# --- 1. LISTADO ---
+@login_required
+@permission_required('materiales.view_categoriamaterial', raise_exception=True)
+def categoria_list_view(request):
+    # Aplicamos el ordering = ['nombre'] de tu clase original
+    categorias = CategoriaMaterial.objects.all().order_by('nombre')
+    return render(request, 'materiales/categoria_list.html', {
+        'categorias': categorias,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
+
+
+# --- 2. CREACIÓN ---
+@login_required
+@permission_required('materiales.add_categoriamaterial', raise_exception=True)
+def categoria_create_view(request):
+    if request.method == 'POST':
+        form = CategoriaMaterialForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('materiales:categoria_list'))
+    else:
+        form = CategoriaMaterialForm()
+
+    return render(request, 'materiales/categoria_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
+
+
+# --- 3. EDICIÓN ---
+@login_required
+@permission_required('materiales.change_categoriamaterial', raise_exception=True)
+def categoria_update_view(request, pk):
+    categoria = get_object_or_404(CategoriaMaterial, pk=pk)
+
+    if request.method == 'POST':
+        form = CategoriaMaterialForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('materiales:categoria_list'))
+    else:
+        form = CategoriaMaterialForm(instance=categoria)
+
+    return render(request, 'materiales/categoria_form.html', {
+        'form': form,
+        'categoria': categoria,
+        'menu_template': 'core/menus/menu_materiales.html',
+
+    })
+
+
+# --- 4. ELIMINACIÓN ---
+@login_required
+@permission_required('materiales.delete_categoriamaterial', raise_exception=True)
+def categoria_delete_view(request, pk):
+    categoria = get_object_or_404(CategoriaMaterial, pk=pk)
+
+    if request.method == 'POST':
+        try:
+            categoria.delete()
+            return redirect(reverse('materiales:categoria_list'))
+        except models.ProtectedError:
+            # Captura si la categoría tiene materiales vinculados (Fk con on_delete=models.PROTECT)
+            messages.error(request, "No se puede eliminar esta categoría porque está asociada a uno o más materiales.")
+            return redirect(reverse('materiales:categoria_list'))
+
+    return render(request, 'materiales/categoria_confirm_delete.html', {
+        'object': categoria,
+        'categoria': categoria,
+        'menu_template': 'core/menus/menu_materiales.html',
+
+    })
+
 # ALMACENES
 
 @login_required
 @permission_required('materiales.view_almacen', raise_exception=True)
 def almacen_list(request):
     almacenes = Almacen.objects.all().order_by('nombre')
-    return render(request, 'materiales/almacen_list.html', {'almacenes': almacenes})
+    return render(request, 'materiales/almacen_list.html', {
+        'almacenes': almacenes,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
 
 @login_required
 @permission_required('materiales.add_almacen', raise_exception=True)
@@ -123,7 +254,10 @@ def almacen_create(request):
             return redirect('materiales:almacen_list')
     else:
         form = AlmacenForm()
-    return render(request, 'materiales/almacen_form.html', {'form': form})
+    return render(request, 'materiales/almacen_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
 
 @login_required
 @permission_required('materiales.change_almacen', raise_exception=True)
@@ -137,7 +271,10 @@ def almacen_update(request, pk):
             return redirect('materiales:almacen_list')
     else:
         form = AlmacenForm(instance=almacen)
-    return render(request, 'materiales/almacen_form.html', {'form': form})
+    return render(request, 'materiales/almacen_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
 
 @login_required
 @permission_required('materiales.delete_almacen', raise_exception=True)
@@ -147,7 +284,10 @@ def almacen_delete(request, pk):
         almacen.delete()
         messages.success(request, "Almacén eliminado.")
         return redirect('materiales:almacen_list')
-    return render(request, 'materiales/almacen_confirm_delete.html', {'object': almacen})
+    return render(request, 'materiales/almacen_confirm_delete.html', {
+        'object': almacen,
+        'menu_template': 'core/menus/menu_materiales.html',
+    })
 
 # REPORTE
 @login_required
@@ -220,6 +360,7 @@ def reporte_existencias(request):
         'almacen_seleccionado': almacen_id,
         'material_query': material_query,
         'total_cantidad': total_cantidad,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 # MOVIMIENTOS DE ALMACEN
@@ -275,6 +416,7 @@ def movimiento_list(request):
         'almacen_filtro': almacen,
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 @login_required
@@ -321,6 +463,7 @@ def ajuste_inventario(request):
         'formset': formset,
         'almacenes': almacenes,
         'materiales': materiales,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 @login_required
@@ -329,7 +472,8 @@ def detalle_movimiento(request, pk):
     """Ver detalle de un movimiento de almacén."""
     movimiento = get_object_or_404(MovimientoAlmacen, pk=pk)
     return render(request, 'materiales/almacen/movimiento_detail.html', {
-        'movimiento': movimiento
+        'movimiento': movimiento,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 @login_required
@@ -370,6 +514,7 @@ def entrada_mercancia(request):
         'formset': formset,
         'almacenes': almacenes,
         'materiales': materiales,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 
@@ -411,6 +556,7 @@ def salida_mercancia(request):
         'formset': formset,
         'almacenes': almacenes,
         'materiales': materiales,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 
@@ -452,6 +598,7 @@ def transferencia_mercancia(request):
         'formset': formset,
         'almacenes': almacenes,
         'materiales': materiales,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 
 # Reportes
@@ -553,5 +700,6 @@ def reporte_kardex(request):
         'almacen_seleccionado': almacen_seleccionado,
         'saldo_inicial': saldo_inicial,
         'saldo_final': saldo_final,
+        'menu_template': 'core/menus/menu_materiales.html',
     })
 

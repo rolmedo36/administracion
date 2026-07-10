@@ -34,6 +34,13 @@
                 <p><strong>Cotización:</strong><br> COT-{{ pedido.cotizacion.id }}</p>
             </div>
             {% endif %}
+            <div class="col-md-4">
+                <p><strong>Vendedor:</strong>
+                    {% if pedido.vendedor %}
+                        <br> {{ pedido.vendedor }}
+                    {% endif %}
+                </p>
+            </div>
         </div>
     </div>
 </div>

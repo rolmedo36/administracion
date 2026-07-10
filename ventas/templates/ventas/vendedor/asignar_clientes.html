@@ -1,0 +1,63 @@
+<!-- ventas/templates/ventas/vendedor/asignar_clientes.html -->
+{% extends 'ventas/base_ventas.html' %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Asignar Clientes a Vendedor</h2>
+    <a href="{% url 'ventas:vendedor_detail' vendedor.pk %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Vendedor: {{ vendedor.nombre_completo }}</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Seleccionar Clientes</label>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Seleccionar</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>RFC</th>
+                                <th>Ciudad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes_disponibles %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox"
+                                           name="clientes"
+                                           value="{{ cliente.id }}"
+                                           {% if cliente.id in clientes_asignados_ids %}checked{% endif %}>
+                                </td>
+                                <td>{{ cliente.codigo }}</td>
+                                <td>{{ cliente.nombre }}</td>
+                                <td>{{ cliente.rfc }}</td>
+                                <td>{{ cliente.ciudad }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Asignaciones
+            </button>
+            <a href="{% url 'ventas:vendedor_detail' vendedor.pk %}" class="btn btn-secondary">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

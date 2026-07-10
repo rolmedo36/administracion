@@ -34,6 +34,13 @@
                 <p><strong>Pedido:</strong><br> PED-{{ factura.pedido.id }}</p>
             </div>
             {% endif %}
+            <div class="col-md-4">
+                <p><strong>Vendedor:</strong>
+                    {% if factura.vendedor %}
+                        <br> {{ factura.vendedor }}
+                    {% endif %}
+                </p>
+            </div>
         </div>
         <div class="col-md-12">
             <p><strong>Notas:</strong><br>

@@ -40,4 +40,14 @@ urlpatterns = [
     path('reportes/cxc/vencimientos/', views.reporte_cxc_vencimientos, name='reporte_cxc_vencimientos'),
     path('reportes/cxc/clientes-saldo/', views.reporte_cxc_clientes_mayor_saldo, name='reporte_cxc_clientes_mayor_saldo'),
 
+    # Vendedores
+    path('vendedores/', views.vendedor_list, name='vendedor_list'),
+    path('vendedores/crear/', views.vendedor_create, name='vendedor_create'),
+    path('vendedores/<int:pk>/', views.vendedor_detail, name='vendedor_detail'),
+    path('vendedores/<int:pk>/editar/', views.vendedor_update, name='vendedor_update'),
+    path('vendedores/<int:pk>/eliminar/', views.vendedor_delete, name='vendedor_delete'),
+
+    # Asignación de clientes a vendedores
+    path('vendedores/<int:vendedor_id>/asignar-clientes/',
+         views.asignar_clientes_vendedor, name='asignar_clientes_vendedor'),
 ]

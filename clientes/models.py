@@ -108,6 +108,12 @@ class Cliente(models.Model):
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
+    vendedores_asignados = models.ManyToManyField(
+        'ventas.Vendedor',
+        blank=True,
+        related_name='clientes_asignados'
+    )
+
     class Meta:
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"

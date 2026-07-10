@@ -17,13 +17,19 @@ from flujocaja.models import MovimientoBancario
 @login_required
 @permission_required('compras.view_proveedor', raise_exception=True)
 def compras_index(request):
-    return render(request, 'compras/compras_index.html', {'titulo': "Compras"})
+    return render(request, 'compras/compras_index.html', {
+        'titulo': "Compras",
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 @login_required
 @permission_required('compras.view_proveedor', raise_exception=True)
 def proveedor_list(request):
     proveedores = Proveedor.objects.all().order_by('nombre')
-    return render(request, 'compras/proveedor_list.html', {'proveedores': proveedores})
+    return render(request, 'compras/proveedor_list.html', {
+        'proveedores': proveedores,
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 
 @login_required
@@ -38,7 +44,10 @@ def proveedor_create(request):
             return redirect('compras:proveedor_list')
     else:
         form = ProveedorForm()
-    return render(request, 'compras/proveedor_form.html', {'form': form})
+    return render(request, 'compras/proveedor_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 
 @login_required
@@ -53,7 +62,10 @@ def proveedor_update(request, pk):
             return redirect('compras:proveedor_list')
     else:
         form = ProveedorForm(instance=proveedor)
-    return render(request, 'compras/proveedor_form.html', {'form': form})
+    return render(request, 'compras/proveedor_form.html', {
+        'form': form,
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 
 @login_required
@@ -64,7 +76,10 @@ def proveedor_delete(request, pk):
         proveedor.delete()
         messages.success(request, "Proveedor eliminado.")
         return redirect('compras:proveedor_list')
-    return render(request, 'compras/proveedor_confirm_delete.html', {'object': proveedor})
+    return render(request, 'compras/proveedor_confirm_delete.html', {
+        'object': proveedor,
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 
 # === ORDENES DE COMPRA ===
@@ -73,7 +88,10 @@ def proveedor_delete(request, pk):
 @permission_required('compras.view_ordencompra', raise_exception=True)
 def ordencompra_list(request):
     ordenes = OrdenCompra.objects.select_related('proveedor').all().order_by('-fecha_creacion')
-    return render(request, 'compras/ordencompra_list.html', {'ordenes': ordenes})
+    return render(request, 'compras/ordencompra_list.html', {
+        'ordenes': ordenes,
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 @login_required
 @permission_required('compras.view_ordencompra', raise_exception=True)
@@ -81,6 +99,7 @@ def ordencompra_detail(request, pk):
     orden = get_object_or_404(OrdenCompra, pk=pk)
     return render(request, 'compras/ordencompra_detail.html', {
         'orden': orden,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 @login_required
@@ -126,15 +145,6 @@ def ordencompra_create(request):
         for mat in Material.objects.filter(activo=True)
     }
 
-    # return render(request, 'compras/ordencompra_form.html', {
-    #     'form': form,
-    #     'formset': formset,
-    #     'empty_form': formset.empty_form,  # ← Asegúrate de que esto esté
-    #     'proveedores': proveedores,
-    #     'materiales': materiales,
-    #     'object': None,
-    # })
-
     return render(request, 'compras/ordencompra_form.html', {
         'form': form,
         'detalles': formset,
@@ -143,6 +153,7 @@ def ordencompra_create(request):
         'materiales': materiales,
         'materiales_data_json': json.dumps(materiales_data),
         'object': None,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 @login_required
@@ -189,6 +200,7 @@ def ordencompra_update(request, pk):
         'materiales': materiales,
         'materiales_data_json': json.dumps(materiales_data),
         'object': orden,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 
@@ -200,7 +212,10 @@ def ordencompra_delete(request, pk):
         orden.delete()
         messages.success(request, "Orden eliminada.")
         return redirect('compras:ordencompra_list')
-    return render(request, 'compras/ordencompra_confirm_delete.html', {'object': orden})
+    return render(request, 'compras/ordencompra_confirm_delete.html', {
+        'object': orden,
+        'menu_template': 'core/menus/menu_cxp.html',
+    })
 
 @login_required
 @permission_required('compras.view_ordencompra', raise_exception=True)
@@ -208,7 +223,8 @@ def ordenes_por_recibir(request):
     ordenes = OrdenCompra.objects.filter(estado='confirmada').select_related('proveedor').order_by('-fecha_creacion')
     return render(request, 'compras/ordencompra_list.html', {
         'ordenes': ordenes,
-        'modo_recepcion': True  # Para personalizar el título
+        'modo_recepcion': True,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 @login_required
@@ -238,7 +254,8 @@ def recepcion_orden(request, pk):
 
     return render(request, 'compras/recepcion_orden.html', {
         'orden': orden,
-        'form': form
+        'form': form,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 # CXP
@@ -275,7 +292,8 @@ def registrar_pago_cxp(request, cxp_id):
 
     return render(request, 'compras/pago_cxp_form.html', {
         'form': form,
-        'cxp': cxp
+        'cxp': cxp,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 
@@ -286,7 +304,8 @@ def detalle_cxp(request, cxp_id):
     total_pagado = cxp.pagos.aggregate(total=Sum('monto'))['total'] or 0
     return render(request, 'compras/cxp_detail.html', {
         'cxp': cxp,
-        'total_pagado': total_pagado
+        'total_pagado': total_pagado,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 
 # REPORTE CXP
@@ -319,5 +338,6 @@ def reporte_cxp(request):
         'total_importe': total_importe,
         'total_saldo': total_saldo,
         'today': today,
+        'menu_template': 'core/menus/menu_cxp.html',
     })
 

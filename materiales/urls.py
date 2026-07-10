@@ -5,17 +5,17 @@ app_name = 'materiales'
 
 urlpatterns = [
     # Materiales
-    path('', views.MaterialListView.as_view(), name='material_list'),
+    path('', views.material_list_view, name='material_list'),
     path('/', views.material_index, name='material_index'),
-    path('crear/', views.MaterialCreateView.as_view(), name='material_create'),
-    path('<int:pk>/editar/', views.MaterialUpdateView.as_view(), name='material_update'),
-    path('<int:pk>/eliminar/', views.MaterialDeleteView.as_view(), name='material_delete'),
+    path('crear/', views.material_create_view, name='material_create'),
+    path('<int:pk>/editar/', views.material_update_view, name='material_update'),
+    path('<int:pk>/eliminar/', views.material_delete_view, name='material_delete'),
 
     # Categorías
-    path('categorias/', views.CategoriaMaterialListView.as_view(), name='categoria_list'),
-    path('categorias/crear/', views.CategoriaMaterialCreateView.as_view(), name='categoria_create'),
-    path('categorias/<int:pk>/editar/', views.CategoriaMaterialUpdateView.as_view(), name='categoria_update'),
-    path('categorias/<int:pk>/eliminar/', views.CategoriaMaterialDeleteView.as_view(), name='categoria_delete'),
+    path('categorias/', views.categoria_list_view, name='categoria_list'),
+    path('categorias/crear/', views.categoria_create_view, name='categoria_create'),
+    path('categorias/<int:pk>/editar/', views.categoria_update_view, name='categoria_update'),
+    path('categorias/<int:pk>/eliminar/', views.categoria_delete_view, name='categoria_delete'),
 
     # Almacenes
     path('almacenes/', views.almacen_list, name='almacen_list'),
