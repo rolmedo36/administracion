@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db import transaction
+from django.core.paginator import Paginator
 from .models import CotizacionVenta, PedidoVenta, DetallePedido, Cliente, Material, DetalleCotizacion, FacturaVenta, DetalleFactura, CuentaPorCobrar, PagoCuentaPorCobrar, Vendedor
 from .forms import (
     CotizacionVentaForm,
@@ -24,17 +25,154 @@ from core.services.facturadigital_service import timbrar_factura_venta
 
 @login_required
 @permission_required('ventas.view_cotizacionventa', raise_exception=True)
+# ventas/views.py
+
+@login_required
 def cotizacion_list(request):
-    cotizaciones = CotizacionVenta.objects.select_related('cliente').all().order_by('-fecha')
+    # Obtener queryset base
+    cotizaciones = CotizacionVenta.objects.select_related(
+        'cliente', 'vendedor', 'creado_por'
+    )
+
+    # Filtro por vendedor si el usuario es vendedor
+    if request.user.groups.filter(name='Vendedor').exists():
+        try:
+            vendedor = request.user.vendedor
+            print(f"Vendedor logueado: {vendedor}")  # ← Para depuración
+            cotizaciones = cotizaciones.filter(vendedor=vendedor)
+            print(f"Cotizaciones encontradas: {cotizaciones.count()}")  # ← Para depuración
+        except Vendedor.DoesNotExist:
+            cotizaciones = CotizacionVenta.objects.none()
+
+    # Filtros adicionales
+    estado_filtro = request.GET.get('estado')
+    cliente_filtro = request.GET.get('cliente')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+
+    if estado_filtro:
+        cotizaciones = cotizaciones.filter(estado=estado_filtro)
+    if cliente_filtro:
+        cotizaciones = cotizaciones.filter(cliente__id=cliente_filtro)
+    if fecha_desde:
+        cotizaciones = cotizaciones.filter(fecha_creacion__date__gte=fecha_desde)
+    if fecha_hasta:
+        cotizaciones = cotizaciones.filter(fecha_creacion__date__lte=fecha_hasta)
+
+    cotizaciones = cotizaciones.order_by('-fecha_creacion')
+
+    # Paginación
+    paginator = Paginator(cotizaciones, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Datos para filtros en template
+    clientes = Cliente.objects.filter(activo=True)
+    if request.user.groups.filter(name='Vendedor').exists():
+        try:
+            vendedor = request.user.vendedor
+            clientes = clientes.filter(vendedores_asignados=vendedor)
+        except Vendedor.DoesNotExist:
+            clientes = Cliente.objects.none()
+
     return render(request, 'ventas/cotizacion/cotizacion_list.html', {
-        'cotizaciones': cotizaciones,
+        'page_obj': page_obj,
+        'clientes': clientes,
+        'estado_filtro': estado_filtro,
+        'cliente_filtro': cliente_filtro,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
         'menu_template': 'core/menus/menu_cxc.html',
     })
 
 
 @login_required
-@permission_required('ventas.add_cotizacionventa', raise_exception=True)
 def cotizacion_create(request):
+    """Crear cotización con clientes filtrados por vendedor."""
+    if request.method == 'POST':
+        form = CotizacionVentaForm(request.POST, user=request.user)
+        formset = DetalleCotizacionFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    # 1. Crear y guardar la cotización primero
+                    cotizacion = form.save(commit=False)
+                    cotizacion.creado_por = request.user
+
+                    # Asignar vendedor automáticamente si es vendedor
+                    if request.user.groups.filter(name='Vendedor').exists():
+                        try:
+                            cotizacion.vendedor = request.user.vendedor
+                        except Vendedor.DoesNotExist:
+                            pass
+
+                    cotizacion.save()  # ← Guardar primero para obtener ID
+
+                    # 2. Guardar los detalles y asignar la cotización
+                    detalles = formset.save(commit=False)
+                    for detalle in detalles:
+                        detalle.cotizacion = cotizacion
+                        detalle.save()
+
+                    # 3. Calcular totales dinámicamente (IVA fijo al 16% si aplica)
+                    from decimal import Decimal
+                    subtotal = Decimal('0')
+                    iva = Decimal('0')
+
+                    for detalle in cotizacion.detalles.all():
+                        # Calcular subtotal del detalle
+                        precio_con_descuento = detalle.precio_unitario * (1 - (detalle.descuento / 100))
+                        subtotal_detalle = detalle.cantidad * precio_con_descuento
+                        subtotal += subtotal_detalle
+
+                        # Aplicar IVA del 16% solo si el material lo requiere
+                        if hasattr(detalle.material, 'aplica_iva') and detalle.material.aplica_iva:
+                            iva_detalle = subtotal_detalle * Decimal('0.16')
+                            iva += iva_detalle
+
+                    cotizacion.subtotal = subtotal
+                    cotizacion.iva = iva
+                    cotizacion.total = subtotal + iva
+                    cotizacion.save()
+
+                    messages.success(request, f"Cotización {cotizacion.id} creada exitosamente.")
+                    return redirect('ventas:cotizacion_detail', pk=cotizacion.pk)
+            except Exception as e:
+                messages.error(request, f"Error al crear la cotización: {str(e)}")
+    else:
+        form = CotizacionVentaForm(user=request.user)
+        formset = DetalleCotizacionFormSet()
+
+    # Filtrar clientes según el usuario
+    if request.user.groups.filter(name='Vendedor').exists():
+        try:
+            vendedor = request.user.vendedor
+            clientes = Cliente.objects.filter(
+                activo=True,
+                vendedores_asignados=vendedor
+            )
+        except Vendedor.DoesNotExist:
+            clientes = Cliente.objects.none()
+    else:
+        clientes = Cliente.objects.filter(activo=True)
+
+    materiales = Material.objects.filter(activo=True, es_inventariable=True)
+
+    return render(request, 'ventas/cotizacion/cotizacion_form.html', {
+        'form': form,
+        'formset': formset,
+        'empty_form': formset.empty_form,
+        'clientes': clientes,
+        'materiales': materiales,
+        'object': None,
+        'menu_template': 'core/menus/menu_cxc.html',
+
+    })
+
+@login_required
+@permission_required('ventas.add_cotizacionventa', raise_exception=True)
+def cotizacion_create_resp(request):
     if request.method == 'POST':
         form = CotizacionVentaForm(request.POST)
         formset = DetalleCotizacionFormSet(request.POST)

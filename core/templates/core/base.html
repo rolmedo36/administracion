@@ -1,8 +1,10 @@
 <!-- core/templates/core/base.html -->
+{% load user_extras %}
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-{% load static %}
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,8 +20,6 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-
-    {% load user_extras %}
 
     {% if user.is_authenticated %}
         {% if user|is_vendedor %}

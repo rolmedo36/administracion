@@ -10,6 +10,8 @@ from flujocaja.models import CuentaBancaria
 
 # === FORMULARIOS DE COTIZACIÓN ===
 
+# ventas/forms.py
+
 class CotizacionVentaForm(forms.ModelForm):
     class Meta:
         model = CotizacionVenta
@@ -22,8 +24,41 @@ class CotizacionVentaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # Extraer el usuario del kwargs
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['cliente'].queryset = Cliente.objects.filter(activo=True)
+
+        # Filtrar clientes y vendedores según el usuario
+        if self.user and self.user.groups.filter(name='Vendedor').exists():
+            try:
+                vendedor = self.user.vendedor
+                # Solo mostrar clientes asignados al vendedor
+                self.fields['cliente'].queryset = Cliente.objects.filter(
+                    activo=True,
+                    vendedores_asignados=vendedor
+                )
+                # Vendedor no puede cambiar el vendedor (se asigna automáticamente)
+                if 'vendedor' in self.fields:
+                    del self.fields['vendedor']
+            except Vendedor.DoesNotExist:
+                self.fields['cliente'].queryset = Cliente.objects.none()
+        else:
+            # Administradores ven todos los clientes y pueden asignar vendedor
+            self.fields['cliente'].queryset = Cliente.objects.filter(activo=True)
+            self.fields['vendedor'].queryset = Vendedor.objects.filter(activo=True)
+
+    def clean_cliente(self):
+        cliente = self.cleaned_data.get('cliente')
+        if (self.user and
+                self.user.groups.filter(name='Vendedor').exists() and
+                cliente):
+            try:
+                vendedor = self.user.vendedor
+                if cliente not in vendedor.clientes_asignados.all():
+                    raise forms.ValidationError("No tiene permisos para este cliente.")
+            except Vendedor.DoesNotExist:
+                raise forms.ValidationError("Error de configuración de vendedor.")
+        return cliente
 
 class DetalleCotizacionForm(forms.ModelForm):
     class Meta:

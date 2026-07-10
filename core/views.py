@@ -6,7 +6,9 @@ from .forms import EmpresaForm
 
 @login_required
 def dashboard(request):
-    return render(request, 'core/dashboard.html')
+    return render(request, 'core/dashboard.html', {
+        'menu_template': 'core/menus/menu_completo.html',
+    })
 
 @login_required
 @permission_required('core.change_empresa', raise_exception=True)
