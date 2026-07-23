@@ -154,9 +154,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/core/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
-# FacturaDigital API
-FACTURADIGITAL_API_KEY = config('FACTURADIGITAL_API_KEY')
-FACTURADIGITAL_URL = config('FACTURADIGITAL_URL')
 
 # Configuración de Correo (SendGrid)
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'

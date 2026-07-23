@@ -1,0 +1,257 @@
+<!-- compras/templates/compras/ordencompra_form.html -->
+{% extends 'compras/base_compras.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Editar Orden{% else %}Nueva Orden de Compra{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.table-searchable input {
+    margin-bottom: 10px;
+    width: 100%;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% if form.non_field_errors or detalles.non_form_errors %}
+<div class="alert alert-danger">
+    <strong>Errores:</strong>
+    {{ form.non_field_errors }}
+    {{ detalles.non_form_errors }}
+    {% for form_d in detalles %}
+        {{ form_d.non_field_errors }}
+        {% for field in form_d %}
+            {{ field.errors }}
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4>{% if object %}Editar Orden de Compra{% else %}Nueva Orden de Compra{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="ordenCompraForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="estado" name="estado" value="borrador">
+
+                    <!-- ¡IMPORTANTE! Renderiza el campo 'proveedor' como <select> oculto -->
+                    {{ form.proveedor }}
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            {{ form.numero.label_tag }}
+                            {{ form.numero }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Proveedor</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="proveedor_display"
+                                    value="{% if object.proveedor %}{{ object.proveedor }}{% endif %}"
+                                    readonly placeholder="Seleccionar proveedor...">
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalProveedores">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DETALLE -->
+                    <h5 class="mt-4 mb-3">Detalles de la Orden</h5>
+                    {{ detalles.management_form }}
+                    <!-- Plantilla oculta para clonar nuevas líneas -->
+                    <div id="empty-form" style="display:none;">
+                        {% for hidden in empty_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        {{ empty_form.material }}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Material</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control material-nombre"
+                                        readonly placeholder="Seleccionar material...">
+                                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalMateriales">
+                                        Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                {{ empty_form.cantidad.label_tag }}
+                                {{ empty_form.cantidad }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ empty_form.precio_unitario.label_tag }}
+                                {{ empty_form.precio_unitario }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ empty_form.subtotal.label_tag }}
+                                {{ empty_form.subtotal }}
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="detalles-container">
+                        {% for form in detalles %}
+                        <div class="detalle-row border p-3 mb-3 rounded">
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                            {{ form.material }}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Material</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control material-nombre"
+                                            value="{% if form.instance.material %}{{ form.instance.material }}{% endif %}"
+                                            readonly placeholder="Seleccionar material...">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalMateriales" data-detalle-index="{{ forloop.counter0 }}">
+                                            Buscar
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.cantidad.label_tag }}
+                                    {{ form.cantidad }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.precio_unitario.label_tag }}
+                                    {{ form.precio_unitario }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.subtotal.label_tag }}
+                                    {{ form.subtotal }}
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    {% if form.instance.pk %}
+                                        <div class="form-check">
+                                            {{ form.DELETE }}
+                                            <label class="form-check-label">Eliminar</label>
+                                        </div>
+                                    {% else %}
+                                        <!-- Para filas nuevas, no mostrar "Eliminar" -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-line">Eliminar</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Botón para agregar línea -->
+                    <button type="button" class="btn btn-outline-primary mb-3" id="add-line">
+                        + Agregar línea
+                    </button>
+
+                    <button type="submit" class="btn btn-success">Guardar Orden</button>
+                    <a href="{% url 'compras:ordencompra_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Proveedores -->
+<div class="modal fade" id="modalProveedores" tabindex="-1" aria-labelledby="modalProveedoresLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalProveedoresLabel">Seleccionar Proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="searchProveedor" placeholder="Buscar proveedor...">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>RUC/NIT</th>
+                                <th>Teléfono</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proveedoresTableBody">
+                            {% for prov in proveedores %}
+                            <tr>
+                                <td>{{ prov.nombre }}</td>
+                                <td>{{ prov.identificacion }}</td>
+                                <td>{{ prov.telefono|default:"—" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary select-proveedor"
+                                        data-id="{{ prov.id }}"
+                                        data-nombre="{{ prov.nombre }} ({{ prov.identificacion }})">
+                                        Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Materiales -->
+<div class="modal fade" id="modalMateriales" tabindex="-1" aria-labelledby="modalMaterialesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMaterialesLabel">Seleccionar Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="searchMaterial" placeholder="Buscar material (código o nombre)...">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialesTableBody">
+                            {% for mat in materiales %}
+                            <tr>
+                                <td>{{ mat.codigo }}</td>
+                                <td>{{ mat.nombre }}</td>
+                                <td>{{ mat.categoria.nombre }}</td>
+                                <td>
+                                    <span class="badge bg-{% if mat.es_inventariable %}info{% else %}secondary{% endif %}">
+                                        {{ mat.tipo_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary select-material"
+                                        data-id="{{ mat.id }}"
+                                        data-nombre="{{ mat.codigo }} - {{ mat.nombre }}">
+                                        Seleccionar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'compras/js/ordencompra_form.js' %}"></script>
+{% endblock %}
