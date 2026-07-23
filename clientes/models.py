@@ -124,3 +124,105 @@ class Cliente(models.Model):
 
     def get_clasificacion_display_full(self):
         return dict(CLASIFICACION_CLIENTE_CHOICES).get(self.clasificacion, self.clasificacion)
+
+class ActividadCliente(models.Model):
+    class TipoActividad(models.TextChoices):
+        COMENTARIO = 'comentario', 'Comentario'
+        TAREA = 'tarea', 'Tarea Pendiente'
+        EVENTO = 'evento', 'Evento / Reunión'
+
+    class EstadoActividad(models.TextChoices):
+        PENDIENTE = 'pendiente', 'Pendiente'
+        COMPLETADA = 'completada', 'Completada'
+        CANCELADA = 'cancelada', 'Cancelada'
+
+    # Relación con el cliente (Ajusta el 'on_delete' y la importación según tu modelo real)
+    cliente = models.ForeignKey(
+        'clientes.Cliente',  # <--- CAMBIA ESTO por la ruta real de tu modelo Cliente
+        on_delete=models.CASCADE,
+        related_name='actividades'
+    )
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=TipoActividad.choices,
+        default=TipoActividad.COMENTARIO
+    )
+
+    titulo = models.CharField(max_length=255, help_text="Resumen corto de la actividad")
+    descripcion = models.TextField(blank=True, null=True)
+
+    # Fecha y hora (Obligatoria para tareas y eventos)
+    fecha_programada = models.DateTimeField(blank=True, null=True)
+
+    estado = models.CharField(
+        max_length=20,
+        choices=EstadoActividad.choices,
+        default=EstadoActividad.PENDIENTE
+    )
+
+    es_privado = models.BooleanField(
+        default=True,
+        help_text="Si es True, solo el equipo interno puede verlo."
+    )
+
+    notificacion_enviada = models.BooleanField(default=False)
+
+    # Auditoría
+    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-fecha_programada', '-fecha_creacion']  # Ordena por fecha más reciente
+        verbose_name = "Actividad de Cliente"
+        verbose_name_plural = "Actividades de Clientes"
+
+    def __str__(self):
+        return f"[{self.get_tipo_display()}] {self.titulo} - {self.cliente}"
+
+
+class DocumentoCliente(models.Model):
+    TIPO_DOCUMENTO_CHOICES = [
+        ('rfc', 'RFC / Constancia de Situación Fiscal'),
+        ('contrato', 'Contrato de Servicios'),
+        ('comprobante_domicilio', 'Comprobante de Domicilio'),
+        ('acta_constitutiva', 'Acta Constitutiva'),
+        ('otro', 'Otro'),
+    ]
+
+    cliente = models.ForeignKey(
+        'Cliente',
+        on_delete=models.CASCADE,
+        related_name='documentos'
+    )
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPO_DOCUMENTO_CHOICES,
+        default='otro'
+    )
+    archivo = models.FileField(
+        upload_to='documentos_clientes/%Y/%m/',
+        help_text="Formatos permitidos: PDF, JPG, PNG"
+    )
+    descripcion = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Ej: Contrato firmado versión 2024"
+    )
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    subido_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "Documento de Cliente"
+        verbose_name_plural = "Documentos de Clientes"
+        ordering = ['-fecha_subida']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.cliente.nombre}"

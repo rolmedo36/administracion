@@ -5,3 +5,9 @@
 {% block content %}
     {% block cliente_content %}{% endblock %}
 {% endblock %}
+
+<!-- Agregamos el bloque extra_js aquí para cargar Chart.js solo en esta app -->
+{% block extra_js %}
+    {{ block.super }} <!-- Esto mantiene los scripts de core/base.html -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}

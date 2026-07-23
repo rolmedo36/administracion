@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@qs+)7^+x9hzbmg*2_zd9&e!u38b@xzcg$w#+b8(1v7gmf)#&*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['rov.ncp.com.mx', '87.99.135.50']
 
 
 # Application definition
@@ -84,10 +85,20 @@ WSGI_APPLICATION = 'admin.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_ncp',
+        'USER': 'ncp_user',
+        'PASSWORD': 's=uMos3iJo',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -125,7 +136,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -138,3 +154,9 @@ LOGOUT_REDIRECT_URL = '/'
 # FacturaDigital API
 FACTURADIGITAL_API_KEY = config('FACTURADIGITAL_API_KEY')
 FACTURADIGITAL_URL = config('FACTURADIGITAL_URL')
+
+# Configuración de Correo (SendGrid)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'DEFAULT_VALUE')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', 'DEFAULT_VALUE')
+DEFAULT_FROM_EMAIL = 'NCP Software <contacto@ncp.com.mx>'
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False

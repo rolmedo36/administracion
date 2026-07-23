@@ -3,89 +3,502 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Cliente <span class="text-success">{{ cliente.nombre }}</span></h2>
-    <a href="{% url 'clientes:cliente_list' %}" class="btn btn-secondary">Volver</a>
+    <div>
+        <h2 class="mb-0">Cliente: <span class="text-success">{{ cliente.nombre }}</span></h2>
+        <small class="text-muted">{{ cliente.get_tipo_cliente_display }} | RFC: {{ cliente.rfc }}</small>
+    </div>
+    <div>
+        <a href="{% url 'clientes:cliente_update' cliente.pk %}" class="btn btn-warning btn-sm">Editar</a>
+        <a href="{% url 'clientes:cliente_list' %}" class="btn btn-secondary btn-sm">Volver</a>
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Información General</h5>
+<!-- ========================================== -->
+<!-- NAVEGACIÓN DE PESTAÑAS (TABS)              -->
+<!-- ========================================== -->
+<ul class="nav nav-tabs mb-4" id="clienteTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="resumen-tab" data-bs-toggle="tab" data-bs-target="#resumen" type="button" role="tab">
+            📊 Resumen
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="cxc-tab" data-bs-toggle="tab" data-bs-target="#cxc" type="button" role="tab">
+            💰 CxC <span class="badge bg-danger rounded-pill">{{ resumen.saldo_cxc|floatformat:0 }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ventas-tab" data-bs-toggle="tab" data-bs-target="#ventas" type="button" role="tab">
+            🛒 Ventas
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="actividades-tab" data-bs-toggle="tab" data-bs-target="#actividades" type="button" role="tab">
+            📅 Actividades
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs" type="button" role="tab">
+            📁 Documentos
+        </button>
+    </li>
+</ul>
+
+<!-- ========================================== -->
+<!-- CONTENIDO DE LAS PESTAÑAS                  -->
+<!-- ========================================== -->
+<div class="tab-content" id="clienteTabsContent">
+
+    <!-- TAB 1: RESUMEN (Dashboard + Timeline) -->
+    <div class="tab-pane fade show active" id="resumen" role="tabpanel">
+
+        <!-- Cards de Resumen Financiero -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Saldo CxC</h6>
+                        <h3 class="mb-0 text-danger">${{ resumen.saldo_cxc|floatformat:2|intcomma }}</h3>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <p><strong>Código:</strong> {{ cliente.codigo }}</p>
-                <p><strong>Nombre:</strong> {{ cliente.nombre }}</p>
-                {% if cliente.nombre_comercial %}
-                <p><strong>Nombre Comercial:</strong> {{ cliente.nombre_comercial }}</p>
-                {% endif %}
-                <p><strong>Tipo:</strong> {{ cliente.get_tipo_cliente_display }}</p>
-                <p><strong>Clasificación:</strong>
-                    <span class="badge bg-{% if cliente.clasificacion == 'A' %}success{% elif cliente.clasificacion == 'B' %}warning{% else %}secondary{% endif %}">
-                        {{ cliente.get_clasificacion_display_full }}
-                    </span>
-                </p>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Límite de Crédito</h6>
+                        <h3 class="mb-0 text-primary">${{ resumen.limite_credito|floatformat:2|intcomma }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Crédito Disponible</h6>
+                        <h3 class="mb-0 text-success">${{ resumen.credito_disponible|floatformat:2|intcomma }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Ventas (Año Actual)</h6>
+                        <h3 class="mb-0 text-info">${{ resumen.total_ventas_anio|floatformat:2|intcomma }}</h3>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Identificación Fiscal</h5>
+        <!-- Info Básica y Timeline (Tu código anterior adaptado) -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-light"><h6 class="mb-0">Información General</h6></div>
+                    <div class="card-body small">
+                        <p><strong>Clasificación:</strong> {{ cliente.get_clasificacion_display_full }}</p>
+                        <p><strong>Contacto:</strong> {{ cliente.contacto_nombre|default:"—" }}</p>
+                        <p><strong>Email:</strong> {{ cliente.email|default:"—" }}</p>
+                        <p><strong>Teléfono:</strong> {{ cliente.telefono|default:"—" }}</p>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <p><strong>RFC:</strong> {{ cliente.rfc }}</p>
-                {% if cliente.curp %}
-                <p><strong>CURP:</strong> {{ cliente.curp }}</p>
-                {% endif %}
-                <p><strong>Régimen Fiscal:</strong> {{ cliente.get_regimen_fiscal_display }}</p>
-                <p><strong>Uso CFDI:</strong> {{ cliente.get_uso_cfdi_display }}</p>
+
+            <div class="col-md-8">
+                <!-- Timeline de Actividades (El código que ya teníamos) -->
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">📅 Actividades Recientes</h6>
+                        <a href="{% url 'clientes:crear_actividad' cliente.pk %}" class="btn btn-sm btn-light fw-bold">+ Nueva</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for actividad in actividades|slice:":5" %} <!-- Mostramos solo las últimas 5 en el resumen -->
+                                <div class="list-group-item py-2">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <span class="badge bg-{% if actividad.tipo == 'comentario' %}info{% elif actividad.tipo == 'tarea' %}warning{% else %}success{% endif %} me-2 small">
+                                                {{ actividad.get_tipo_display }}
+                                            </span>
+                                            <strong class="{% if actividad.estado == 'completada' %}text-decoration-line-through text-muted{% endif %}">
+                                                {{ actividad.titulo }}
+                                            </strong>
+                                        </div>
+                                        <small class="text-muted">{{ actividad.fecha_creacion|date:"d M Y" }}</small>
+                                    </div>
+                                    {% if actividad.descripcion %}
+                                        <p class="text-muted small mb-0 mt-1 ps-4">{{ actividad.descripcion|truncatewords:15 }}</p>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <div class="list-group-item text-center text-muted py-4">Sin actividades recientes</div>
+                            {% endfor %}
+                        </div>
+                        {% if actividades.count > 5 %}
+                            <div class="text-center p-2 bg-light">
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tab" data-bs-target="#actividades">Ver todas las actividades →</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Contacto</h5>
+    <!-- TAB 2: CxC (Datos Reales) -->
+    <div class="tab-pane fade" id="cxc" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">💰 Cuentas por Cobrar</h5>
+                <div>
+                    <span class="badge bg-danger me-2">{{ resumen.facturas_vencidas }} vencidas</span>
+                    <span class="badge bg-warning text-dark">{{ cxc_paginated|length }} registros</span>
+                </div>
             </div>
-            <div class="card-body">
-                <p><strong>Email:</strong> {{ cliente.email|default:"—" }}</p>
-                <p><strong>Teléfono:</strong> {{ cliente.telefono|default:"—" }}</p>
-                <p><strong>Móvil:</strong> {{ cliente.telefono_movil|default:"—" }}</p>
-                {% if cliente.contacto_nombre %}
-                <p><strong>Contacto:</strong> {{ cliente.contacto_nombre }}</p>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Folio</th>
+                                <th>Fecha</th>
+                                <th>Vencimiento</th>
+                                <th class="text-end">Monto Total</th>
+                                <th class="text-end">Saldo Pendiente</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center">Días Atraso</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cxc in cxc_paginated %}
+                                <tr class="{% if cxc.fecha_vencimiento < hoy and cxc.estado != 'pagado' %}table-danger{% endif %}">
+                                    <td>
+                                        <strong>{{ cxc.factura.folio }}</strong>
+                                    </td>
+                                    <td>{{ cxc.factura.fecha|date:"d M Y" }}</td>
+                                    <td>
+                                        {{ cxc.fecha_vencimiento|date:"d M Y" }}
+                                        {% if cxc.fecha_vencimiento < hoy and cxc.estado != 'pagado' %}
+                                            <span class="badge bg-danger ms-1">Vencida</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">${{ cxc.monto_total|floatformat:2|intcomma }}</td>
+                                    <td class="text-end">
+                                        <strong>${{ cxc.saldo_pendiente|floatformat:2|intcomma }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{% if cxc.estado == 'pagado' %}success{% elif cxc.estado == 'parcial' %}warning{% else %}danger{% endif %}">
+                                            {{ cxc.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if cxc.fecha_vencimiento < hoy and cxc.estado != 'pagado' %}
+                                            <span class="text-danger fw-bold">
+                                                {{ hoy|timeuntil:cxc.fecha_vencimiento }} días
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary">Ver Detalle</button>
+                                        {% if cxc.estado != 'pagado' %}
+                                            <a href="{% url 'ventas:registrar_pago_cxc' cxc.pk %}" class="btn btn-sm btn-outline-success">
+                                                💰 Aplicar pago
+                                            </a>
+                                        {% else %}
+                                            <span class="badge bg-success">Pagada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        No hay cuentas por cobrar registradas para este cliente.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                {% if cxc_paginated.has_other_pages %}
+                    <div class="card-footer">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if cxc_paginated.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?cxc_page={{ cxc_paginated.previous_page_number }}">Anterior</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in cxc_paginated.paginator.page_range %}
+                                    <li class="page-item {% if cxc_paginated.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?cxc_page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+
+                                {% if cxc_paginated.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?cxc_page={{ cxc_paginated.next_page_number }}">Siguiente</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
                 {% endif %}
             </div>
         </div>
+    </div>
 
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Dirección Fiscal</h5>
-            </div>
-            <div class="card-body">
-                <p>{{ cliente.calle }}</p>
-                <p>{{ cliente.colonia }}, {{ cliente.codigo_postal }}</p>
-                <p>{{ cliente.ciudad }}, {{ cliente.estado }}</p>
-                <p>{{ cliente.pais }}</p>
-            </div>
-        </div>
-
+    <!-- TAB 3: Ventas (Datos Reales) -->
+    <div class="tab-pane fade" id="ventas" role="tabpanel">
         <div class="card">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Condiciones Comerciales</h5>
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🛒 Historial de Facturas</h5>
+                <div>
+                    <span class="badge bg-primary">{{ ventas_paginated|length }} facturas</span>
+                    <span class="badge bg-success ms-2">Total año: ${{ resumen.total_ventas_anio|floatformat:2|intcomma }}</span>
+                </div>
             </div>
             <div class="card-body">
-                <p><strong>Límite de Crédito:</strong> ${{ cliente.limite_credito|floatformat:2|intcomma }}</p>
-                <p><strong>Días de Crédito:</strong> {{ cliente.dias_credito }} días</p>
-                <p><strong>Descuento:</strong> {{ cliente.descuento }}%</p>
-                <p><strong>Moneda:</strong> {{ cliente.get_moneda_display }}</p>
-                <p><strong>Estado:</strong> {% if cliente.activo %}✅ Activo{% else %}❌ Inactivo{% endif %}</p>
+                <!-- Gráfico de Ventas -->
+                <div class="mb-4">
+                    <h5 class="mb-3"> Ventas de los Últimos 12 Meses</h5>
+                    <div style="height: 300px;">
+                        <canvas id="ventasChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabla de Facturas (ya la tenías) -->
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Folio</th>
+                                <th>Fecha</th>
+                                <th class="text-end">Subtotal</th>
+                                <th class="text-end">IVA</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Estado</th>
+                                <th>Vendedor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factura in ventas_paginated %}
+                                <tr>
+                                    <td><strong>{{ factura.folio }}</strong></td>
+                                    <td>{{ factura.fecha|date:"d M Y" }}</td>
+                                    <td class="text-end">${{ factura.subtotal|floatformat:2|intcomma }}</td>
+                                    <td class="text-end">${{ factura.iva|floatformat:2|intcomma }}</td>
+                                    <td class="text-end"><strong>${{ factura.total|floatformat:2|intcomma }}</strong></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{% if factura.estado == 'timbrada' %}success{% elif factura.estado == 'activa' %}primary{% elif factura.estado == 'cancelada' %}danger{% else %}secondary{% endif %}">
+                                            {{ factura.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ factura.vendedor.nombre_completo|default:"—" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        No hay facturas registradas para este cliente.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación (la que ya tenías) -->
+                {% if ventas_paginated.has_other_pages %}
+                    <div class="card-footer">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if ventas_paginated.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?ventas_page={{ ventas_paginated.previous_page_number }}">Anterior</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in ventas_paginated.paginator.page_range %}
+                                    <li class="page-item {% if ventas_paginated.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?ventas_page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+
+                                {% if ventas_paginated.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?ventas_page={{ ventas_paginated.next_page_number }}">Siguiente</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- TAB 4: Actividades (Timeline Completo) -->
+    <div class="tab-pane fade" id="actividades" role="tabpanel">
+        <div class="d-flex justify-content-between mb-3">
+            <h4>Historial Completo de Actividades</h4>
+            <a href="{% url 'clientes:crear_actividad' cliente.pk %}" class="btn btn-success">+ Nueva Actividad</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for actividad in actividades %}
+                        <div class="list-group-item py-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-9">
+                                    <div class="mb-2">
+                                        <span class="badge bg-{% if actividad.tipo == 'comentario' %}info{% elif actividad.tipo == 'tarea' %}warning{% else %}success{% endif %} me-2">
+                                            {{ actividad.get_tipo_display }}
+                                        </span>
+                                        <strong class="fs-5 {% if actividad.estado == 'completada' %}text-decoration-line-through text-muted{% endif %}">
+                                            {{ actividad.titulo }}
+                                        </strong>
+                                        {% if actividad.es_privado %}<span class="badge bg-secondary ms-2">🔒</span>{% endif %}
+                                    </div>
+                                    {% if actividad.descripcion %}
+                                        <p class="text-muted mb-1 small ps-1 border-start border-3 border-light">{{ actividad.descripcion }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 text-md-end mt-2 mt-md-0">
+                                    <small class="text-muted d-block mb-2">{{ actividad.fecha_creacion|date:"d M Y, H:i" }}</small>
+                                    {% if actividad.tipo == 'tarea' %}
+                                        <form method="post" action="{% url 'clientes:completar_tarea' actividad.pk %}" class="d-inline-block">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm {% if actividad.estado == 'pendiente' %}btn-success{% else %}btn-outline-secondary{% endif %} w-100">
+                                                {% if actividad.estado == 'pendiente' %}✅ Completar{% else %}↺ Reabrir{% endif %}
+                                            </button>
+                                        </form>
+                                    {% elif actividad.tipo == 'evento' and actividad.estado == 'pendiente' %}
+                                        <button type="button" class="btn btn-sm btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalCerrarReunion" data-actividad-id="{{ actividad.pk }}" data-actividad-titulo="{{ actividad.titulo }}">
+                                            📝 Cerrar Reunión
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="list-group-item text-center py-4">No hay actividades registradas.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: Documentos -->
+    <div class="tab-pane fade" id="docs" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">📁 Documentos Adjuntos</h4>
+            <a href="{% url 'clientes:subir_documento' cliente.pk %}" class="btn btn-success">
+                + Subir Documento
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Fecha de Subida</th>
+                                <th>Subido por</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in cliente.documentos.all %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ doc.get_tipo_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ doc.descripcion|default:"—" }}</td>
+                                    <td>{{ doc.fecha_subida|date:"d M Y, H:i" }}</td>
+                                    <td>{{ doc.subido_por.get_full_name|default:doc.subido_por.username }}</td>
+                                    <td class="text-end">
+                                        <a href="{{ doc.archivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            Ver
+                                        </a>
+                                        <a href="{{ doc.archivo.url }}" class="btn btn-sm btn-outline-success" download>
+                                            Descargar
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        No hay documentos adjuntos para este cliente.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<div class="mt-4">
-    <a href="{% url 'clientes:cliente_update' cliente.pk %}" class="btn btn-warning">Editar Cliente</a>
-</div>
+<!-- (Mantén aquí el Modal de Cerrar Reunión que ya tenías) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+
+        // Datos desde Django
+        const labels = {{ chart_labels|safe }};
+        const data = {{ chart_data|safe }};
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
 {% endblock %}
