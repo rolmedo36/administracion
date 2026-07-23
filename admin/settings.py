@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from decouple import config
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -156,7 +159,7 @@ FACTURADIGITAL_API_KEY = config('FACTURADIGITAL_API_KEY')
 FACTURADIGITAL_URL = config('FACTURADIGITAL_URL')
 
 # Configuración de Correo (SendGrid)
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'DEFAULT_VALUE')
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', 'DEFAULT_VALUE')
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = 'NCP Software <contacto@ncp.com.mx>'
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
