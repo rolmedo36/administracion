@@ -1,5 +1,6 @@
 .env
-.venv/
-# Base de datos local
-db.sqlite3.env
-.env
+.DS_Store
+.idea/
+*.pyc
+__pycache__/
+db.sqlite3
