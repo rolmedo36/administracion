@@ -1,0 +1,65 @@
+{% extends 'taller/base_taller.html' %}
+
+{% block title %}Mecánicos - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="fas fa-user-cog text-primary"></i> Mecánicos</h2>
+            <p class="text-muted mb-0">Gestión del personal del taller</p>
+        </div>
+        <a href="{% url 'taller:crear_mecanico' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Mecánico
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Especialidad</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mecanico in mecanicos %}
+                        <tr>
+                            <td class="fw-bold">{{ mecanico.nombre_completo }}</td>
+                            <td>{{ mecanico.especialidad|default:"-" }}</td>
+                            <td>{{ mecanico.telefono|default:"-" }}</td>
+                            <td>{{ mecanico.email|default:"-" }}</td>
+                            <td class="text-center">
+                                {% if mecanico.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'taller:editar_mecanico' mecanico.pk %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fas fa-users fa-3x mb-3 text-secondary"></i><br>
+                                No hay mecánicos registrados
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

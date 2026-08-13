@@ -31,5 +31,9 @@ urlpatterns = [
     path('ventas/', include('ventas.urls')),
     path('flujocaja/', include('flujocaja.urls')),
     path('crm/', include('crm.urls')),
-    path('', RedirectView.as_view(url='/core/dashboard/')),  # Redirige a dashboard
+
+    # taller
+    path('taller/', include('taller.urls')),
+
+    path('', RedirectView.as_view(url='/core/dashboard/')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

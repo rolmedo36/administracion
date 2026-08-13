@@ -1,0 +1,106 @@
+{% extends 'taller/base_taller.html' %}
+
+{% block title %}{{ titulo }} - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-user-cog text-primary"></i> {{ titulo }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Por favor corrija los errores marcados.
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Nombre *</label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="text-danger small">{{ form.nombre.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Apellido *</label>
+                                {{ form.apellido }}
+                                {% if form.apellido.errors %}
+                                    <div class="text-danger small">{{ form.apellido.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger small">{{ form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Especialidad</label>
+                            {{ form.especialidad }}
+                            <small class="text-muted">Ej: Mecánica general, Electricidad, Pintura</small>
+                            {% if form.especialidad.errors %}
+                                <div class="text-danger small">{{ form.especialidad.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Usuario del Sistema</label>
+                            {{ form.usuario }}
+                            <small class="text-muted">Opcional: vincular con un usuario del sistema</small>
+                            {% if form.usuario.errors %}
+                                <div class="text-danger small">{{ form.usuario.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.activo }}
+                                <label class="form-check-label fw-bold" for="id_activo">
+                                    Mecánico Activo
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Notas</label>
+                            {{ form.notas }}
+                            {% if form.notas.errors %}
+                                <div class="text-danger small">{{ form.notas.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                            <a href="{% url 'taller:lista_mecanicos' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

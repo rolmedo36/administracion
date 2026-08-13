@@ -62,6 +62,20 @@
                         <li><a class="dropdown-item" href="{% url 'creditos:credito_index' %}">Créditos</a></li>
                     </ul>
                 </div>
+
+                <!-- TALLER -->
+                <div class="nav-item dropdown ms-3">
+                    <a class="nav-link dropdown-toggle" href="#" id="tallerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Taller
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="tallerDropdown">
+                        <li><a class="dropdown-item" href="{% url 'taller:dashboard_taller' %}">Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'taller:lista_ordenes' %}"><i class="fas fa-clipboard-list me-2"></i> Órdenes de Servicio</a></li>
+                        <li><a class="dropdown-item" href="{% url 'taller:lista_vehiculos' %}"><i class="fas fa-car me-2"></i> Vehículos</a></li>
+                        <li><a class="dropdown-item" href="{% url 'taller:lista_mecanicos' %}"><i class="fas fa-user-cog me-2"></i> Mecánicos</a></li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Usuario -->

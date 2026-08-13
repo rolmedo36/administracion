@@ -1,0 +1,477 @@
+{% extends 'taller/base_taller.html' %}
+{% load static %}
+
+{% block title %}Orden {{ orden.numero_os }} - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    {% csrf_token %}
+
+    <!-- Encabezado con número de OS y estado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-file-invoice text-primary"></i>
+                Orden {{ orden.numero_os }}
+            </h2>
+            <p class="text-muted mb-0">
+                Creada el {{ orden.fecha_entrada|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            {% if orden.estado != 'ENTREGADA' and orden.estado != 'PAGADA' %}
+            <a href="{% url 'taller:editar_orden' orden.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            {% else %}
+            <span class="badge bg-dark fs-6 p-2"><i class="fas fa-lock"></i> ORDEN CERRADA (Solo Lectura)</span>
+            {% endif %}
+
+            <a href="{% url 'taller:lista_ordenes' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Botón de Imprimir (siempre visible) -->
+            <a href="{% url 'taller:imprimir_orden' orden.pk %}" target="_blank" class="btn btn-outline-dark">
+                <i class="fas fa-print"></i> Imprimir
+            </a>
+
+            {% if orden.estado != 'ENTREGADA' and orden.estado != 'PAGADA' %}
+            <a href="{% url 'taller:editar_orden' orden.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            {% else %}
+            <span class="badge bg-dark fs-6 p-2"><i class="fas fa-lock"></i> ORDEN CERRADA (Solo Lectura)</span>
+            {% endif %}
+
+            <a href="{% url 'taller:lista_ordenes' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjeta de Estado Actual -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h6 class="text-muted mb-1">Estado Actual</h6>
+                    <span class="badge fs-5
+                        {% if orden.estado == 'NUEVA' %}bg-primary
+                        {% elif orden.estado == 'EN_DIAGNOSTICO' %}bg-warning text-dark
+                        {% elif orden.estado == 'COTIZADA' %}bg-info text-dark
+                        {% elif orden.estado == 'APROBADA' %}bg-success
+                        {% elif orden.estado == 'EN_REPARACION' %}bg-secondary
+                        {% elif orden.estado == 'TERMINADA' %}bg-dark
+                        {% elif orden.estado == 'ENTREGADA' %}bg-success
+                        {% else %}bg-danger{% endif %}">
+                        {{ orden.get_estado_display }}
+                    </span>
+                </div>
+                <div class="col-md-4 text-end">
+                    <!-- Botones de cambio de estado según el estado actual -->
+                    {% if orden.estado == 'NUEVA' %}
+                        <a href="{% url 'taller:cambiar_estado_orden' orden.pk 'EN_DIAGNOSTICO' %}" class="btn btn-warning">
+                            <i class="fas fa-stethoscope"></i> Iniciar Diagnóstico
+                        </a>
+                    {% elif orden.estado == 'EN_DIAGNOSTICO' %}
+                        <a href="{% url 'taller:cambiar_estado_orden' orden.pk 'COTIZADA' %}" class="btn btn-info">
+                            <i class="fas fa-file-invoice-dollar"></i> Cotizar al Cliente
+                        </a>
+                    {% elif orden.estado == 'COTIZADA' %}
+                        <a href="{% url 'taller:cambiar_estado_orden' orden.pk 'APROBADA' %}" class="btn btn-success">
+                            <i class="fas fa-check"></i> Cliente Aprobó
+                        </a>
+                    {% elif orden.estado == 'APROBADA' %}
+                        <a href="{% url 'taller:cambiar_estado_orden' orden.pk 'EN_REPARACION' %}" class="btn btn-secondary">
+                            <i class="fas fa-tools"></i> Iniciar Reparación
+                        </a>
+                    {% elif orden.estado == 'EN_REPARACION' %}
+                        <a href="{% url 'taller:cambiar_estado_orden' orden.pk 'TERMINADA' %}" class="btn btn-dark">
+                            <i class="fas fa-check-double"></i> Marcar Terminada
+                        </a>
+                    {% elif orden.estado == 'TERMINADA' %}
+                        <a href="{% url 'taller:cambiar_estado_orden' orden.pk 'ENTREGADA' %}" class="btn btn-success">
+                            <i class="fas fa-handshake"></i> Entregar al Cliente
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda: Información General -->
+        <div class="col-lg-8">
+            <!-- Información del Cliente y Vehículo -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-user text-primary"></i> Cliente y Vehículo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Cliente</h6>
+                            <p class="mb-1 fw-bold">{{ orden.cliente }}</p>
+                            {% if orden.cliente.telefono %}
+                                <p class="mb-0 small text-muted">
+                                    <i class="fas fa-phone"></i> {{ orden.cliente.telefono }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Vehículo</h6>
+                            <p class="mb-1 fw-bold">{{ orden.vehiculo.descripcion_completa }}</p>
+                            <p class="mb-0 small text-muted">
+                                {% if orden.vehiculo.placa %}
+                                    <i class="fas fa-id-card"></i> Placa: {{ orden.vehiculo.placa }}<br>
+                                {% endif %}
+                                {% if orden.kilometraje_entrada %}
+                                    <i class="fas fa-tachometer-alt"></i> {{ orden.kilometraje_entrada }} km al entrar
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnóstico -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-stethoscope text-warning"></i> Diagnóstico</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted">Síntoma reportado por el cliente</h6>
+                        <div class="p-3 bg-light rounded border">
+                            <p class="mb-0">{{ orden.sintoma_cliente|default:"<em class='text-muted'>No especificado</em>" }}</p>
+                        </div>
+                        <small class="text-muted"><i class="fas fa-info-circle"></i> Este es el reporte original del cliente y no puede modificarse</small>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="text-muted">Diagnóstico del mecánico</h6>
+                        <p class="mb-0">{{ orden.diagnostico_mecanico|default:"<em class='text-muted'>Pendiente de diagnóstico</em>" }}</p>
+                    </div>
+                    {% if orden.costo_diagnostico > 0 %}
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Costo de diagnóstico:</span>
+                            <span class="fw-bold fs-5">${{ orden.costo_diagnostico }}</span>
+                        </div>
+                        {% if orden.diagnostico_aplicado %}
+                            <small class="text-success"><i class="fas fa-check"></i> Cobrado al cliente</small>
+                        {% else %}
+                            <small class="text-warning"><i class="fas fa-clock"></i> Pendiente de cobro</small>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Ítems: Refacciones y Materiales -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-box text-info"></i> Refacciones y Materiales</h5>
+                    {% if orden.estado != 'ENTREGADA' and orden.estado != 'PAGADA' %}
+                    <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalBuscarMaterial({{ orden.pk }})">
+                        <i class="fas fa-plus"></i> Agregar Material
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">P. Unitario</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                    {% if item.tipo != 'MANO_OBRA' %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-info me-2">{{ item.get_tipo_display }}</span>
+                                            {{ item.descripcion }}
+                                        </td>
+                                        <td class="text-center">{{ item.cantidad }}</td>
+                                        <td class="text-end">${{ item.precio_unitario }}</td>
+                                        <td class="text-end fw-bold">${{ item.subtotal }}</td>
+                                        <td class="text-center">
+                                            {% if orden.estado != 'ENTREGADA' and orden.estado != 'PAGADA' %}
+                                            <form method="post" action="{% url 'taller:eliminar_item' item.pk %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('¿Eliminar este ítem?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            {% else %}
+                                            <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        No hay refacciones o materiales agregados
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end fw-bold">Subtotal Refacciones:</td>
+                                    <td class="text-end fw-bold fs-5">${{ orden.subtotal_refacciones }}</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ítems: Mano de Obra -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-cog text-secondary"></i> Mano de Obra</h5>
+                    {% if orden.estado != 'ENTREGADA' and orden.estado != 'PAGADA' %}
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalAgregarManoObra">
+                        <i class="fas fa-plus"></i> Agregar Mano de Obra
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">P. Unitario</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                    {% if item.tipo == 'MANO_OBRA' %}
+                                    <tr>
+                                        <td>{{ item.descripcion }}</td>
+                                        <td class="text-center">{{ item.cantidad }}</td>
+                                        <td class="text-end">${{ item.precio_unitario }}</td>
+                                        <td class="text-end fw-bold">${{ item.subtotal }}</td>
+                                        <td class="text-center">
+                                            {% if orden.estado != 'ENTREGADA' and orden.estado != 'PAGADA' %}
+                                            <form method="post" action="{% url 'taller:eliminar_item' item.pk %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('¿Eliminar este ítem?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            {% else %}
+                                            <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        No hay mano de obra registrada
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end fw-bold">Subtotal Mano de Obra:</td>
+                                    <td class="text-end fw-bold fs-5">${{ orden.subtotal_mano_obra }}</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas Técnicas -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-clipboard text-success"></i> Notas Técnicas</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ orden.notas_tecnicas|default:"<em class='text-muted'>Sin notas técnicas registradas</em>"|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Totales y Resumen -->
+        <div class="col-lg-4">
+            <!-- Resumen de Totales -->
+            <div class="card mb-4 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calculator"></i> Resumen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Refacciones/Materiales:</span>
+                        <span class="fw-bold">${{ orden.subtotal_refacciones }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Mano de Obra:</span>
+                        <span class="fw-bold">${{ orden.subtotal_mano_obra }}</span>
+                    </div>
+                    {% if orden.descuento > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-danger">
+                        <span>Descuento:</span>
+                        <span class="fw-bold">-${{ orden.descuento }}</span>
+                    </div>
+                    {% endif %}
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span class="fs-5 fw-bold">TOTAL:</span>
+                        <span class="fs-4 fw-bold text-primary">${{ orden.total }}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Pagos -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave text-success"></i> Pagos</h5>
+                    {% if orden.estado != 'PAGADA' %}
+                    <a href="{% url 'taller:registrar_pago' orden.pk %}" class="btn btn-sm btn-success">
+                        <i class="fas fa-plus"></i> Registrar Pago
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <small class="text-muted">Total</small>
+                            <h5 class="mb-0">${{ orden.total }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Pagado</small>
+                            <h5 class="mb-0 text-success">${{ orden.total_pagado }}</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Saldo Pendiente</small>
+                            <h5 class="mb-0 text-danger">${{ saldo_pendiente }}</h5>
+                        </div>
+                    </div>
+
+                    {% if orden.pagos.all %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
+                                    <th>Método</th>
+                                    <th>Referencia</th>
+                                    <th>Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pago in orden.pagos.all %}
+                                <tr>
+                                    <td>{{ pago.fecha_pago|date:"d/m/Y H:i" }}</td>
+                                    <td class="fw-bold text-success">${{ pago.monto }}</td>
+                                    <td>{{ pago.get_metodo_pago_display }}</td>
+                                    <td>{{ pago.referencia|default:"-" }}</td>
+                                    <td>{{ pago.notas|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center mb-0">No hay pagos registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Información Adicional -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Mecánico Responsable</small>
+                        <p class="mb-0 fw-bold">
+                            {{ orden.mecanico_responsable|default:"Sin asignar" }}
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Tipo de Servicio</small>
+                        <p class="mb-0">{{ orden.get_tipo_servicio_display }}</p>
+                    </div>
+                    {% if orden.metodo_pago %}
+                    <div class="mb-3">
+                        <small class="text-muted">Método de Pago</small>
+                        <p class="mb-0">{{ orden.get_metodo_pago_display }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <small class="text-muted">Garantía</small>
+                        <p class="mb-0">{{ orden.garantia_dias }} días</p>
+                    </div>
+                    {% if orden.fecha_salida %}
+                    <div class="mb-0">
+                        <small class="text-muted">Fecha de Entrega</small>
+                        <p class="mb-0">{{ orden.fecha_salida|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir modal de búsqueda de materiales -->
+{% include 'taller/_modal_buscar_material.html' %}
+
+<!-- Modal para agregar mano de obra -->
+<div class="modal fade" id="modalAgregarManoObra" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'taller:agregar_item' orden.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-user-cog"></i> Agregar Mano de Obra</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="tipo" value="MANO_OBRA">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descripción detallada del trabajo</label>
+                        <textarea name="descripcion" class="form-control" rows="4" required
+                                  placeholder="Ej:&#10;- Cambio de balatas delanteras&#10;- Revisión de nivel de líquido de frenos&#10;- Ajuste de cadena"></textarea>
+                        <small class="text-muted">Describe detalladamente el trabajo realizado</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Cantidad</label>
+                            <input type="number" name="cantidad" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Precio Unitario</label>
+                            <input type="number" name="precio_unitario" class="form-control" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-save"></i> Agregar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

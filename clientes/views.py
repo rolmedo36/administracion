@@ -171,6 +171,15 @@ def cliente_detail(request, pk):
     hoy = timezone.now().date()
     hace_12_meses = hoy - timedelta(days=365)
 
+    # 7. Vehículos del cliente (del módulo Taller)
+    from taller.models import Vehiculo, OrdenServicio
+    vehiculos = Vehiculo.objects.filter(cliente=cliente).order_by('-año')
+
+    # 8. Órdenes de servicio del cliente
+    ordenes_servicio = OrdenServicio.objects.filter(cliente=cliente).select_related('vehiculo',
+                                                                                    'mecanico_responsable').order_by(
+        '-fecha_entrada')[:20]  # Últimas 20
+
     # Consultar facturas activas o timbradas del último año
     facturas_ventas = FacturaVenta.objects.filter(
         cliente=cliente,
@@ -216,6 +225,10 @@ def cliente_detail(request, pk):
         'hoy': hoy,
         'chart_labels': chart_labels,
         'chart_data': chart_data,
+        'vehiculos': vehiculos,
+        'ordenes_servicio': ordenes_servicio,
+        'menu_template': 'core/menus/menu_cxc.html',
+
     })
 
 @login_required

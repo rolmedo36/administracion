@@ -1,0 +1,221 @@
+{% extends 'taller/base_taller.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-file-invoice text-primary"></i> {{ titulo }}
+            </h2>
+            <p class="text-muted mb-0">Complete la información de la orden de servicio</p>
+        </div>
+        <a href="{% url 'taller:lista_ordenes' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> Por favor corrija los errores marcados.
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Columna Izquierda -->
+            <div class="col-lg-8">
+                <!-- Información del Cliente y Vehículo -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-user text-primary"></i> Cliente y Vehículo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cliente *</label>
+                                {{ form.cliente }}
+                                {% if form.cliente.errors %}
+                                    <div class="text-danger small">{{ form.cliente.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Vehículo *</label>
+                                {{ form.vehiculo }}
+                                {% if form.vehiculo.errors %}
+                                    <div class="text-danger small">{{ form.vehiculo.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Mecánico Responsable</label>
+                                {{ form.mecanico_responsable }}
+                                {% if form.mecanico_responsable.errors %}
+                                    <div class="text-danger small">{{ form.mecanico_responsable.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Tipo de Servicio *</label>
+                                {{ form.tipo_servicio }}
+                                {% if form.tipo_servicio.errors %}
+                                    <div class="text-danger small">{{ form.tipo_servicio.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Kilometraje</label>
+                                {{ form.kilometraje_entrada }}
+                                {% if form.kilometraje_entrada.errors %}
+                                    <div class="text-danger small">{{ form.kilometraje_entrada.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnóstico -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-stethoscope text-warning"></i> Diagnóstico</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Síntoma reportado por el cliente</label>
+                            {{ form.sintoma_cliente }}
+                            <small class="text-muted">Lo que el cliente dice que siente mal</small>
+                            {% if form.sintoma_cliente.errors %}
+                                <div class="text-danger small">{{ form.sintoma_cliente.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Diagnóstico del mecánico</label>
+                            {{ form.diagnostico_mecanico }}
+                            <small class="text-muted">Lo que el mecánico encontró al revisar</small>
+                            {% if form.diagnostico_mecanico.errors %}
+                                <div class="text-danger small">{{ form.diagnostico_mecanico.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Costo de Diagnóstico</label>
+                                {{ form.costo_diagnostico }}
+                                {% if form.costo_diagnostico.errors %}
+                                    <div class="text-danger small">{{ form.costo_diagnostico.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <div class="form-check mb-3">
+                                    {{ form.diagnostico_aplicado }}
+                                    <label class="form-check-label fw-bold" for="id_diagnostico_aplicado">
+                                        ¿Se cobró el diagnóstico?
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notas Técnicas -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-clipboard text-success"></i> Notas Técnicas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Detalle del trabajo realizado o por realizar</label>
+                            {{ form.notas_tecnicas }}
+                            <small class="text-muted">Espacio libre para que el mecánico detalle todo lo que se hizo o se hará</small>
+                            {% if form.notas_tecnicas.errors %}
+                                <div class="text-danger small">{{ form.notas_tecnicas.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha -->
+            <div class="col-lg-4">
+                <!-- Pago y Garantía -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-credit-card text-info"></i> Pago y Garantía</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descuento</label>
+                            {{ form.descuento }}
+                            {% if form.descuento.errors %}
+                                <div class="text-danger small">{{ form.descuento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Método de Pago</label>
+                            {{ form.metodo_pago }}
+                            {% if form.metodo_pago.errors %}
+                                <div class="text-danger small">{{ form.metodo_pago.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Garantía (días)</label>
+                            {{ form.garantia_dias }}
+                            <small class="text-muted">Días de garantía sobre la reparación</small>
+                            {% if form.garantia_dias.errors %}
+                                <div class="text-danger small">{{ form.garantia_dias.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-save"></i> Guardar Orden
+                        </button>
+                        <a href="{% url 'taller:lista_ordenes' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Filtrar vehículos cuando se selecciona un cliente
+document.getElementById('id_cliente').addEventListener('change', function() {
+    const clienteId = this.value;
+    const vehiculoSelect = document.getElementById('id_vehiculo');
+
+    if (clienteId) {
+        // Hacer petición AJAX para obtener vehículos del cliente
+        fetch(`/taller/ajax/vehiculos-por-cliente/${clienteId}/`)
+            .then(response => response.json())
+            .then(data => {
+                // Limpiar opciones actuales
+                vehiculoSelect.innerHTML = '<option value="">---------</option>';
+
+                // Agregar nuevas opciones
+                data.vehiculos.forEach(vehiculo => {
+                    const option = document.createElement('option');
+                    option.value = vehiculo.id;
+                    option.textContent = `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.año} - ${vehiculo.placa || 'Sin placa'}`;
+                    vehiculoSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar vehículos:', error);
+            });
+    } else {
+        vehiculoSelect.innerHTML = '<option value="">---------</option>';
+    }
+});
+</script>
+{% endblock %}

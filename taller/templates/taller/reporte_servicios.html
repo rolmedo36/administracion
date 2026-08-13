@@ -1,0 +1,184 @@
+{% extends 'taller/base_taller.html' %}
+{% load taller_tags %}
+
+{% block title %}Reporte de Servicios - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-chart-bar text-primary"></i> Reporte de Servicios
+            </h2>
+            <p class="text-muted mb-0">Análisis financiero de órdenes de servicio</p>
+        </div>
+        <a href="{% url 'taller:dashboard_taller' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+    <!-- Formulario de Filtros -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-filter text-info"></i> Filtros</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'taller:reporte_servicios' %}">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">Fecha Inicio</label>
+                        <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">Fecha Fin</label>
+                        <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Cliente</label>
+                        <select name="cliente" class="form-select">
+                            <option value="">Todos los clientes</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.pk }}" {% if cliente_id == cliente.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ cliente }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen Financiero -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Total General</h6>
+                    <h3 class="mb-0 text-primary">${{ total_general }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Total Cobrado</h6>
+                    <h3 class="mb-0 text-success">${{ total_pagado }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Pendiente de Cobro</h6>
+                    <h3 class="mb-0 text-danger">${{ total_pendiente }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-info">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Total de Órdenes</h6>
+                    <h3 class="mb-0 text-info">{{ ordenes.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desglose por Mtodo de Pago -->
+    {% if pagos_por_metodo %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-credit-card text-success"></i> Cobros por Método de Pago</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for metodo, monto in pagos_por_metodo.items %}
+                <div class="col-md-3 mb-3">
+                    <div class="border rounded p-3 text-center">
+                        <small class="text-muted">{{ metodo }}</small>
+                        <h5 class="mb-0 text-success">${{ monto }}</h5>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Botón Exportar Excel -->
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'taller:reporte_servicios_excel' %}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}&cliente={{ cliente_id }}"
+           class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Exportar a Excel
+        </a>
+    </div>
+
+    <!-- Tabla de Detalle -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-list text-secondary"></i> Detalle de Órdenes</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No. OS</th>
+                            <th>Fecha Entrada</th>
+                            <th>Cliente</th>
+                            <th>Vehículo</th>
+                            <th>Tipo Servicio</th>
+                            <th>Estado</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Pagado</th>
+                            <th class="text-end">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for orden in ordenes %}
+                        <tr>
+                            <td class="fw-bold">{{ orden.numero_os }}</td>
+                            <td>{{ orden.fecha_entrada|date:"d/m/Y" }}</td>
+                            <td>{{ orden.cliente }}</td>
+                            <td>{{ orden.vehiculo }}</td>
+                            <td>{{ orden.get_tipo_servicio_display }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if orden.estado == 'NUEVA' %}bg-primary
+                                    {% elif orden.estado == 'EN_DIAGNOSTICO' %}bg-warning text-dark
+                                    {% elif orden.estado == 'COTIZADA' %}bg-info text-dark
+                                    {% elif orden.estado == 'APROBADA' %}bg-success
+                                    {% elif orden.estado == 'EN_REPARACION' %}bg-secondary
+                                    {% elif orden.estado == 'TERMINADA' %}bg-dark
+                                    {% elif orden.estado == 'ENTREGADA' %}bg-success
+                                    {% elif orden.estado == 'PAGADA' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ orden.get_estado_display }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold">${{ orden.total }}</td>
+                            <td class="text-end text-success">${{ orden.total_pagado }}</td>
+                            <td class="text-end text-danger">${{ orden.total|subtract:orden.total_pagado }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-5">
+                                <i class="fas fa-inbox fa-3x mb-3 text-secondary"></i><br>
+                                No hay órdenes que coincidan con los filtros seleccionados
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

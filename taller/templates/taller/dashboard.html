@@ -1,0 +1,160 @@
+{% extends 'taller/base_taller.html' %}
+{% load static %}
+
+{% block title %}Dashboard Taller - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="fas fa-wrench text-primary"></i> Dashboard del Taller</h2>
+            <p class="text-muted mb-0">Resumen de órdenes de servicio activas</p>
+        </div>
+        <a href="{% url 'taller:crear_orden' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Orden de Servicio
+        </a>
+    </div>
+
+    <!-- Tarjetas de resumen por estado -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Nuevas</h6>
+                    <h2 class="text-primary mb-0">{{ ordenes_nuevas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">En Diagnóstico</h6>
+                    <h2 class="text-warning mb-0">{{ ordenes_diagnostico }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Cotizadas</h6>
+                    <h2 class="text-info mb-0">{{ ordenes_cotizadas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Aprobadas</h6>
+                    <h2 class="text-success mb-0">{{ ordenes_aprobadas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-secondary h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">En Reparación</h6>
+                    <h2 class="text-secondary mb-0">{{ ordenes_reparacion }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-dark h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Terminadas</h6>
+                    <h2 class="text-dark mb-0">{{ ordenes_terminadas }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del mes -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-bar"></i> Estadísticas del Mes</h5>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Órdenes del mes</h6>
+                            <h3>{{ estadisticas_mes.total_ordenes|default:0 }}</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Órdenes entregadas</h6>
+                            <h3>{{ estadisticas_mes.ordenes_entregadas|default:0 }}</h3>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Ingresos totales</h6>
+                            <h3>${{ estadisticas_mes.ingresos_totales|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Órdenes activas -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center bg-white">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Órdenes Activas</h5>
+            <a href="{% url 'taller:lista_ordenes' %}" class="btn btn-sm btn-outline-primary">
+                Ver todas
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Número</th>
+                            <th>Cliente</th>
+                            <th>Vehículo</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Mecánico</th>
+                            <th>Fecha Entrada</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for orden in ordenes_activas %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'taller:detalle_orden' orden.pk %}" class="fw-bold text-decoration-none">
+                                    {{ orden.numero_os }}
+                                </a>
+                            </td>
+                            <td>{{ orden.cliente }}</td>
+                            <td>{{ orden.vehiculo }}</td>
+                            <td>{{ orden.get_tipo_servicio_display }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if orden.estado == 'NUEVA' %}bg-primary
+                                    {% elif orden.estado == 'EN_DIAGNOSTICO' %}bg-warning text-dark
+                                    {% elif orden.estado == 'COTIZADA' %}bg-info text-dark
+                                    {% elif orden.estado == 'APROBADA' %}bg-success
+                                    {% elif orden.estado == 'EN_REPARACION' %}bg-secondary
+                                    {% elif orden.estado == 'TERMINADA' %}bg-dark
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {{ orden.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ orden.mecanico_responsable|default:"<span class='text-muted'>Sin asignar</span>" }}</td>
+                            <td>{{ orden.fecha_entrada|date:"d/m/Y H:i" }}</td>
+                            <td class="fw-bold">${{ orden.total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                No hay órdenes activas en este momento.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

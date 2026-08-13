@@ -25,7 +25,7 @@
         {% if user|is_vendedor %}
             {% include 'core/menus/menu_vendedor.html' %}
         {% else %}
-            {% include menu_template|default:'core/menus/menu_cxc.html' %}
+            {% include menu_template|default:'core/menus/menu_completo.html' %}
         {% endif %}
     {% else %}
         <!-- Sin menú para página de login -->

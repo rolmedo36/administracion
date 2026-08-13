@@ -105,6 +105,7 @@ TIPO_MOVIMIENTO_CHOICES = [
     ('salida_ajuste_negativo', 'Ajuste Negativo'),
     ('transferencia', 'Transferencia entre Almacenes'),
     ('conteo_fisico', 'Conteo Físico'),
+    ('salida_taller', 'Salida por Consumo en Taller'),
 ]
 
 ESTADO_MOVIMIENTO_CHOICES = [

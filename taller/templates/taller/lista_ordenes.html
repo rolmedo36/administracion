@@ -1,0 +1,131 @@
+{% extends 'taller/base_taller.html' %}
+{% load static %}
+
+{% block title %}Lista de Órdenes - NCP Software{% endblock %}
+
+{% block taller_content %}
+<div class="py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="fas fa-clipboard-list text-primary"></i> Órdenes de Servicio</h2>
+            <p class="text-muted mb-0">Consulta y filtra todas las órdenes del taller</p>
+        </div>
+        <a href="{% url 'taller:crear_orden' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Orden
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        {% for valor, etiqueta in estados %}
+                            <option value="{{ valor }}" {% if estado_filter == valor %}selected{% endif %}>
+                                {{ etiqueta }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Mecánico</label>
+                    <select name="mecanico" class="form-select">
+                        <option value="">Todos los mecánicos</option>
+                        {% for mecanico in mecanicos %}
+                            <option value="{{ mecanico.id }}" {% if mecanico_filter == mecanico.id|stringformat:"s" %}selected{% endif %}>
+                                {{ mecanico.nombre_completo }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Tipo de Servicio</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        {% for valor, etiqueta in tipos_servicio %}
+                            <option value="{{ valor }}" {% if tipo_filter == valor %}selected{% endif %}>
+                                {{ etiqueta }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'taller:lista_ordenes' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Número</th>
+                            <th>Cliente</th>
+                            <th>Vehículo</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Mecánico</th>
+                            <th>Fecha Entrada</th>
+                            <th>Total</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for orden in ordenes %}
+                        <tr>
+                            <td class="fw-bold">{{ orden.numero_os }}</td>
+                            <td>{{ orden.cliente }}</td>
+                            <td>{{ orden.vehiculo }}</td>
+                            <td>{{ orden.get_tipo_servicio_display }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if orden.estado == 'NUEVA' %}bg-primary
+                                    {% elif orden.estado == 'EN_DIAGNOSTICO' %}bg-warning text-dark
+                                    {% elif orden.estado == 'COTIZADA' %}bg-info text-dark
+                                    {% elif orden.estado == 'APROBADA' %}bg-success
+                                    {% elif orden.estado == 'EN_REPARACION' %}bg-secondary
+                                    {% elif orden.estado == 'TERMINADA' %}bg-dark
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {{ orden.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ orden.mecanico_responsable|default:"<span class='text-muted'>Sin asignar</span>" }}</td>
+                            <td>{{ orden.fecha_entrada|date:"d/m/Y" }}</td>
+                            <td class="fw-bold">${{ orden.total }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'taller:detalle_orden' orden.pk %}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'taller:editar_orden' orden.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-5">
+                                <i class="fas fa-search fa-3x mb-3 text-secondary"></i><br>
+                                No se encontraron órdenes con los filtros seleccionados.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

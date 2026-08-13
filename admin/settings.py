@@ -28,9 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@qs+)7^+x9hzbmg*2_zd9&e!u38b@xzcg$w#+b8(1v7gmf)#&*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['rov.ncp.com.mx', '87.99.135.50']
+ALLOWED_HOSTS = ['127.0.0.1', 'rov.ncp.com.mx', '87.99.135.50']
 
 
 # Application definition
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'ventas',
     'flujocaja',
     'crm',
+    'taller',
 ]
 
 MIDDLEWARE = [
