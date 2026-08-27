@@ -1,6 +1,98 @@
+# ==============================================================================
+# VARIABLES DE ENTORNO Y SECRETOS
+# ==============================================================================
 .env
-.DS_Store
-.idea/
-*.pyc
+.env.local
+.env.*.local
+
+# ==============================================================================
+# ENTORNOS VIRTUALES DE PYTHON
+# ==============================================================================
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ==============================================================================
+# ARCHIVOS GENERADOS POR PYTHON / DJANGO
+# ==============================================================================
+*.py[cod]
+*$py.class
 __pycache__/
-db.sqlite3
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==============================================================================
+# BASE DE DATOS
+# ==============================================================================
+*.sqlite3
+*.sqlite3-journal
+
+# ==============================================================================
+# ARCHIVOS ESTÁTICOS Y MEDIA (Generados en producción)
+# ==============================================================================
+# Se ignoran los archivos recolectados, pero se puede mantener el directorio si se desea
+staticfiles/
+media/
+# (Nota: Si quieres subir imágenes de prueba al repo, puedes excluir media/ con un !, 
+# pero en producción lo ideal es que media/ no esté en git).
+
+# ==============================================================================
+# REGISTROS Y ARCHIVOS TEMPORALES
+# ==============================================================================
+*.log
+*.pot
+*.po
+*.mo
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ==============================================================================
+# EDITORES DE CÓDIGO E IDEs
+# ==============================================================================
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# ==============================================================================
+# HERRAMIENTAS DE PRUEBAS Y COBERTURA
+# ==============================================================================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ==============================================================================
+# JUPYTER / OTROS
+# ==============================================================================
+.ipynb_checkpoints
+*.ipynb
