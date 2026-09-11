@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q, F, OuterRef, Subquery
 from django.utils import timezone
 from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio, PagoOrdenServicio, VehiculoInventario
-from materiales.models import MovimientoAlmacen, DetalleMovimientoAlmacen
+from materiales.models import MovimientoAlmacen, DetalleMovimientoAlmacen, StockAlmacen
 from .forms import MecanicoForm, VehiculoForm, OrdenServicioForm, ItemOrdenServicioForm, PagoOrdenServicioForm, VehiculoInventarioForm
 from django.db import transaction
 from datetime import datetime, timedelta
@@ -730,15 +730,20 @@ def reporte_ejecutivo(request):
     # 1. KPIs del Mes Actual
     ordenes_mes = OrdenServicio.objects.filter(fecha_entrada__date__gte=primer_dia_mes)
     total_ordenes_mes = ordenes_mes.count()
-    ingresos_mes = ordenes_mes.aggregate(Sum('total'))['total__sum'] or 0
-    cobrado_mes = ordenes_mes.aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
 
-    # 2. Pendiente de Cobro (Global)
-    ordenes_pendientes = OrdenServicio.objects.exclude(estado=OrdenServicio.ESTADO_PAGADA)
+    # CORRECCIÓN: Solo órdenes de clientes (no internas) para ingresos
+    ordenes_mes_clientes = ordenes_mes.filter(es_interna=False)
+    ingresos_mes = ordenes_mes_clientes.aggregate(Sum('total'))['total__sum'] or 0
+    cobrado_mes = ordenes_mes_clientes.aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+
+    # 2. Pendiente de Cobro (Global) - SOLO órdenes de clientes
+    ordenes_pendientes = OrdenServicio.objects.filter(
+        es_interna=False
+    ).exclude(estado=OrdenServicio.ESTADO_PAGADA)
     total_pendiente = sum((orden.total - orden.total_pagado) for orden in ordenes_pendientes)
     count_pendiente = ordenes_pendientes.count()
 
-    # 3. Tiempo Promedio de Reparación (Días)
+    # 3. Tiempo Promedio de Reparación (Días) - INCLUYE órdenes internas (sí cuentan para productividad)
     ordenes_entregadas = OrdenServicio.objects.filter(
         estado__in=[OrdenServicio.ESTADO_ENTREGADA, OrdenServicio.ESTADO_PAGADA],
         fecha_salida__isnull=False
@@ -749,7 +754,7 @@ def reporte_ejecutivo(request):
         dias_reparacion.append(dias)
     tiempo_promedio = round(sum(dias_reparacion) / len(dias_reparacion), 1) if dias_reparacion else 0
 
-    # 4. Top Mecánico (con más órdenes)
+    # 4. Top Mecánico (con más órdenes) - INCLUYE órdenes internas (sí trabajan en ellas)
     top_mecanico_data = OrdenServicio.objects.values('mecanico_responsable').annotate(
         total_ordenes=Count('id')
     ).order_by('-total_ordenes').first()
@@ -766,16 +771,33 @@ def reporte_ejecutivo(request):
         except Mecanico.DoesNotExist:
             pass
 
-    # 5. Top 5 Clientes
-    top_clientes = OrdenServicio.objects.values('cliente__nombre', 'cliente__id').annotate(
+    # 5. Top 5 Clientes - CORRECCIÓN: Solo órdenes con cliente real (no internas)
+    top_clientes = OrdenServicio.objects.filter(
+        es_interna=False,
+        cliente__isnull=False
+    ).values('cliente__nombre', 'cliente__id').annotate(
         total_ordenes=Count('id'),
         total_gastado=Sum('total')
     ).order_by('-total_ordenes')[:5]
 
-    # 6. Tipos de Servicio más solicitados
+    # 6. Tipos de Servicio más solicitados - INCLUYE órdenes internas (sí son servicios realizados)
     tipos_servicio = OrdenServicio.objects.values('tipo_servicio').annotate(
         cantidad=Count('id')
     ).order_by('-cantidad')
+
+    # 7. KPI de Órdenes Internas (Reparaciones de Inventario)
+    ordenes_internas_mes = ordenes_mes.filter(es_interna=True)
+    total_ordenes_internas = ordenes_internas_mes.count()
+    costo_total_reparaciones_internas = ordenes_internas_mes.aggregate(
+        Sum('total')
+    )['total__sum'] or 0
+
+    # Motos en reparación actualmente (internas no terminadas)
+    motos_en_reparacion = OrdenServicio.objects.filter(
+        es_interna=True
+    ).exclude(
+        estado__in=[OrdenServicio.ESTADO_ENTREGADA, OrdenServicio.ESTADO_PAGADA, OrdenServicio.ESTADO_CANCELADA]
+    ).count()
 
     context = {
         'total_ordenes_mes': total_ordenes_mes,
@@ -787,8 +809,10 @@ def reporte_ejecutivo(request):
         'top_mecanico': top_mecanico,
         'top_clientes': top_clientes,
         'tipos_servicio': tipos_servicio,
+        'total_ordenes_internas': total_ordenes_internas,
+        'costo_total_reparaciones_internas': costo_total_reparaciones_internas,
+        'motos_en_reparacion': motos_en_reparacion,
         'menu_template': 'core/menus/menu_taller.html',
-
     }
 
     return render(request, 'taller/reporte_ejecutivo.html', context)

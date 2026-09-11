@@ -53,7 +53,36 @@
             </div>
         </div>
     </div>
-
+    <!-- Fila 1.5: KPIs de Órdenes Internas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-warning h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2"><i class="fas fa-tools"></i> Órdenes Internas del Mes</h6>
+                    <h2 class="mb-0 text-warning fw-bold">{{ total_ordenes_internas }}</h2>
+                    <small class="text-muted">Reparaciones de inventario</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-danger h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2"><i class="fas fa-dollar-sign"></i> Costo en Reparaciones</h6>
+                    <h2 class="mb-0 text-danger fw-bold">${{ costo_total_reparaciones_internas|floatformat:2 }}</h2>
+                    <small class="text-muted">Inversión en inventario</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-secondary h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2"><i class="fas fa-motorcycle"></i> Motos en Reparación</h6>
+                    <h2 class="mb-0 text-secondary fw-bold">{{ motos_en_reparacion }}</h2>
+                    <small class="text-muted">Actualmente en taller</small>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Fila 2: Cuentas por Cobrar -->
     <div class="row mb-4">
         <div class="col-md-12">

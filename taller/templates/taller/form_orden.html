@@ -224,7 +224,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // 1. LÓGICA PARA ÓRDENES INTERNAS (Toggle)
     // ==========================================
-    const esInternaCheckbox = document.getElementById('id_es_interna_checkbox');
+    // CORRECCIÓN: Usamos querySelector por el atributo 'name' para que sea infalible,
+    // sin depender de si el ID tiene el prefijo 'id_' o no.
+    const esInternaCheckbox = document.querySelector('input[name="es_interna"]');
+
     const seccionClienteVehiculo = document.getElementById('seccion_cliente_vehiculo');
     const seccionVehiculoInventario = document.getElementById('seccion_vehiculo_inventario');
     const clienteSelect = document.getElementById('id_cliente');

@@ -73,8 +73,8 @@
                     <thead class="table-light">
                         <tr>
                             <th>Número</th>
-                            <th>Cliente</th>
-                            <th>Vehículo</th>
+                            <th>Cliente / Moto</th>
+                            <th>Vehículo / Detalles</th>
                             <th>Tipo</th>
                             <th>Estado</th>
                             <th>Mecánico</th>
@@ -87,8 +87,29 @@
                         {% for orden in ordenes %}
                         <tr>
                             <td class="fw-bold">{{ orden.numero_os }}</td>
-                            <td>{{ orden.cliente }}</td>
-                            <td>{{ orden.vehiculo }}</td>
+
+                            <!-- COLUMNA 1: Cliente o Tipo de Orden -->
+                            <td>
+                                {% if orden.es_interna %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-tools"></i> ORDEN INTERNA
+                                    </span>
+                                {% else %}
+                                    {{ orden.cliente|default:"<span class='text-muted'>Sin cliente</span>" }}
+                                {% endif %}
+                            </td>
+
+                            <!-- COLUMNA 2: Vehículo del Cliente o Moto del Inventario -->
+                            <td>
+                                {% if orden.es_interna and orden.vehiculo_inventario %}
+                                    <strong>{{ orden.vehiculo_inventario.marca }} {{ orden.vehiculo_inventario.modelo }}</strong>
+                                    <br><small class="text-muted">VIN: {{ orden.vehiculo_inventario.vin|truncatechars:8 }}</small>
+                                    <br><small class="text-muted">Costo Rep: ${{ orden.vehiculo_inventario.costo_reparacion_interna|floatformat:2 }}</small>
+                                {% else %}
+                                    {{ orden.vehiculo|default:"<span class='text-muted'>Sin vehículo</span>" }}
+                                {% endif %}
+                            </td>
+
                             <td>{{ orden.get_tipo_servicio_display }}</td>
                             <td>
                                 <span class="badge
