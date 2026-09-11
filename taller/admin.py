@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio
+from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio, PagoOrdenServicio, VehiculoInventario
 
 
 @admin.register(Mecanico)
@@ -64,3 +64,11 @@ class OrdenServicioAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(VehiculoInventario)
+class VehiculoInventarioAdmin(admin.ModelAdmin):
+   list_display = ('marca', 'modelo', 'año', 'vin', 'estado', 'precio_venta', 'fecha_ingreso')
+   list_filter = ('estado', 'marca', 'año')
+   search_fields = ('vin', 'marca', 'modelo', 'placa')
+   readonly_fields = ('fecha_creacion', 'fecha_actualizacion', 'costo_reparacion_interna')
+   list_per_page = 20

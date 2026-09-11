@@ -33,25 +33,55 @@
                 <!-- Información del Cliente y Vehículo -->
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0"><i class="fas fa-user text-primary"></i> Cliente y Vehículo</h5>
+                        <h5 class="mb-0"><i class="fas fa-user text-primary"></i> Información de la Orden</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Cliente *</label>
-                                {{ form.cliente }}
-                                {% if form.cliente.errors %}
-                                    <div class="text-danger small">{{ form.cliente.errors }}</div>
-                                {% endif %}
+
+                        <!-- NUEVO: Checkbox para Orden Interna -->
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <div class="form-check form-switch">
+                                {{ form.es_interna }}
+                                <label class="form-check-label fw-bold text-primary" for="id_es_interna_checkbox">
+                                    <i class="fas fa-tools"></i> ¿Es una orden interna? (Reparación de moto en inventario)
+                                </label>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Vehículo *</label>
-                                {{ form.vehiculo }}
-                                {% if form.vehiculo.errors %}
-                                    <div class="text-danger small">{{ form.vehiculo.errors }}</div>
-                                {% endif %}
+                            <small class="text-muted">Márcalo si esta reparación es para una moto que el taller va a vender, no para un cliente externo.</small>
+                        </div>
+
+                        <!-- SECCIÓN CLIENTE/VEHÍCULO (Se oculta si es interna) -->
+                        <div id="seccion_cliente_vehiculo">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Cliente *</label>
+                                    {{ form.cliente }}
+                                    {% if form.cliente.errors %}
+                                        <div class="text-danger small">{{ form.cliente.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Vehículo del Cliente *</label>
+                                    {{ form.vehiculo }}
+                                    {% if form.vehiculo.errors %}
+                                        <div class="text-danger small">{{ form.vehiculo.errors }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
+
+                        <!-- NUEVA SECCIÓN: VEHÍCULO DE INVENTARIO (Se muestra si es interna) -->
+                        <div id="seccion_vehiculo_inventario" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold text-primary">Moto del Inventario *</label>
+                                    {{ form.vehiculo_inventario }}
+                                    {% if form.vehiculo_inventario.errors %}
+                                        <div class="text-danger small">{{ form.vehiculo_inventario.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Selecciona la moto de tu inventario que está siendo reparada.</small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Mecánico Responsable</label>
@@ -85,9 +115,9 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Síntoma reportado por el cliente</label>
+                            <label class="form-label fw-bold">Síntoma reportado</label>
                             {{ form.sintoma_cliente }}
-                            <small class="text-muted">Lo que el cliente dice que siente mal</small>
+                            <small class="text-muted">Lo que se reporta que siente mal</small>
                             {% if form.sintoma_cliente.errors %}
                                 <div class="text-danger small">{{ form.sintoma_cliente.errors }}</div>
                             {% endif %}
@@ -187,34 +217,81 @@
     </form>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-// Filtrar vehículos cuando se selecciona un cliente
-document.getElementById('id_cliente').addEventListener('change', function() {
-    const clienteId = this.value;
+document.addEventListener('DOMContentLoaded', function() {
+    // ==========================================
+    // 1. LÓGICA PARA ÓRDENES INTERNAS (Toggle)
+    // ==========================================
+    const esInternaCheckbox = document.getElementById('id_es_interna_checkbox');
+    const seccionClienteVehiculo = document.getElementById('seccion_cliente_vehiculo');
+    const seccionVehiculoInventario = document.getElementById('seccion_vehiculo_inventario');
+    const clienteSelect = document.getElementById('id_cliente');
     const vehiculoSelect = document.getElementById('id_vehiculo');
 
-    if (clienteId) {
-        // Hacer petición AJAX para obtener vehículos del cliente
-        fetch(`/taller/ajax/vehiculos-por-cliente/${clienteId}/`)
-            .then(response => response.json())
-            .then(data => {
-                // Limpiar opciones actuales
-                vehiculoSelect.innerHTML = '<option value="">---------</option>';
+    function toggleCampos() {
+        if (esInternaCheckbox && esInternaCheckbox.checked) {
+            // Es orden interna: Ocultar cliente/vehículo, mostrar inventario
+            if(seccionClienteVehiculo) seccionClienteVehiculo.style.display = 'none';
+            if(seccionVehiculoInventario) seccionVehiculoInventario.style.display = 'block';
 
-                // Agregar nuevas opciones
-                data.vehiculos.forEach(vehiculo => {
-                    const option = document.createElement('option');
-                    option.value = vehiculo.id;
-                    option.textContent = `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.año} - ${vehiculo.placa || 'Sin placa'}`;
-                    vehiculoSelect.appendChild(option);
+            // Quitar 'required' para que el formulario no bloquee el envío
+            if(clienteSelect) clienteSelect.removeAttribute('required');
+            if(vehiculoSelect) vehiculoSelect.removeAttribute('required');
+        } else {
+            // Es orden normal: Mostrar cliente/vehículo, ocultar inventario
+            if(seccionClienteVehiculo) seccionClienteVehiculo.style.display = 'block';
+            if(seccionVehiculoInventario) seccionVehiculoInventario.style.display = 'none';
+
+            // Restaurar 'required'
+            if(clienteSelect) clienteSelect.setAttribute('required', 'required');
+            if(vehiculoSelect) vehiculoSelect.setAttribute('required', 'required');
+        }
+    }
+
+    // Ejecutar al cargar la página (vital para el modo "Editar")
+    toggleCampos();
+
+    // Escuchar cambios en el checkbox
+    if(esInternaCheckbox) {
+        esInternaCheckbox.addEventListener('change', toggleCampos);
+    }
+
+    // ==========================================
+    // 2. LÓGICA AJAX EXISTENTE (Filtrar vehículos)
+    // ==========================================
+    if(clienteSelect) {
+        clienteSelect.addEventListener('change', function() {
+            const clienteId = this.value;
+
+            // Si no hay cliente, limpiar y salir
+            if (!clienteId) {
+                if(vehiculoSelect) vehiculoSelect.innerHTML = '<option value="">---------</option>';
+                return;
+            }
+
+            // Hacer petición AJAX para obtener vehículos del cliente
+            fetch(`/taller/ajax/vehiculos-por-cliente/${clienteId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if(vehiculoSelect) {
+                        // Limpiar opciones actuales
+                        vehiculoSelect.innerHTML = '<option value="">---------</option>';
+
+                        // Agregar nuevas opciones
+                        data.vehiculos.forEach(vehiculo => {
+                            const option = document.createElement('option');
+                            option.value = vehiculo.id;
+                            option.textContent = `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.año} - ${vehiculo.placa || 'Sin placa'}`;
+                            vehiculoSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar vehículos:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Error al cargar vehículos:', error);
-            });
-    } else {
-        vehiculoSelect.innerHTML = '<option value="">---------</option>';
+        });
     }
 });
 </script>

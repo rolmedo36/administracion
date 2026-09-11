@@ -1,5 +1,5 @@
 from django import forms
-from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio, PagoOrdenServicio
+from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio, PagoOrdenServicio, VehiculoInventario
 from materiales.models import Almacen, Material
 
 class MecanicoForm(forms.ModelForm):
@@ -43,19 +43,23 @@ class VehiculoForm(forms.ModelForm):
 
 
 class OrdenServicioForm(forms.ModelForm):
-    """Formulario para crear/editar órdenes de servicio"""
+    """Formulario para crear/editar órdenes de servicio (clientes e internas)"""
 
     class Meta:
         model = OrdenServicio
-        fields = ['cliente', 'vehiculo', 'mecanico_responsable', 'tipo_servicio',
+        fields = ['es_interna', 'cliente', 'vehiculo', 'vehiculo_inventario',
+                  'mecanico_responsable', 'tipo_servicio',
                   'kilometraje_entrada', 'sintoma_cliente', 'diagnostico_mecanico',
                   'costo_diagnostico', 'diagnostico_aplicado', 'notas_tecnicas',
                   'descuento', 'metodo_pago', 'garantia_dias']
         widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-select'}),
-            'vehiculo': forms.Select(attrs={'class': 'form-select'}),
+            'es_interna': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'es_interna_checkbox'}),
+            'cliente': forms.Select(attrs={'class': 'form-select', 'id': 'id_cliente'}),
+            'vehiculo': forms.Select(attrs={'class': 'form-select', 'id': 'id_vehiculo'}),
+            'vehiculo_inventario': forms.Select(attrs={'class': 'form-select', 'id': 'id_vehiculo_inventario'}),
             'mecanico_responsable': forms.Select(attrs={'class': 'form-select'}),
             'tipo_servicio': forms.Select(attrs={'class': 'form-select'}),
+            'fecha_entrada': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'kilometraje_entrada': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Kilómetros'}),
             'sintoma_cliente': forms.Textarea(attrs={'class': 'form-control', 'rows': 3,
                                                      'placeholder': 'Lo que el cliente reporta'}),
@@ -73,20 +77,30 @@ class OrdenServicioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Si es una orden existente y ya tiene cliente asignado
-        if self.instance.pk and self.instance.cliente_id:
-            self.fields['vehiculo'].queryset = Vehiculo.objects.filter(cliente=self.instance.cliente)
+        # Si es una orden existente
+        if self.instance.pk:
+            # Si es orden interna, filtrar solo motos del inventario
+            if self.instance.es_interna:
+                self.fields['vehiculo_inventario'].queryset = VehiculoInventario.objects.all()
+                self.fields['cliente'].queryset = Cliente.objects.none()  # Vacío
+                self.fields['vehiculo'].queryset = Vehiculo.objects.none()  # Vacío
+            else:
+                # Si es orden de cliente normal
+                self.fields['vehiculo_inventario'].queryset = VehiculoInventario.objects.none()  # Vacío
+                if self.instance.cliente_id:
+                    self.fields['vehiculo'].queryset = Vehiculo.objects.filter(cliente=self.instance.cliente)
         else:
-            # Si es una orden nueva, revisamos si el usuario seleccionó un cliente en el formulario
-            cliente_id = self.data.get('cliente') if self.data else None
+            # Orden nueva - por defecto mostrar todos los campos pero con lógica condicional
+            self.fields['vehiculo_inventario'].queryset = VehiculoInventario.objects.filter(
+                estado__in=['NUEVO', 'SEMINUEVO', 'EN_EXHIBICION']
+            )
 
+            # Para cliente y vehículo de cliente
+            cliente_id = self.data.get('cliente') if self.data else None
             if cliente_id:
-                # Si hay un cliente en los datos enviados (POST), filtrar sus vehículos
                 self.fields['vehiculo'].queryset = Vehiculo.objects.filter(cliente_id=cliente_id)
             else:
-                # Si no hay cliente seleccionado aún (carga inicial), mostrar todos los vehículos
                 self.fields['vehiculo'].queryset = Vehiculo.objects.all()
-
 
 class ItemOrdenServicioForm(forms.ModelForm):
     """Formulario para crear/editar ítems de orden de servicio"""
@@ -123,3 +137,23 @@ class PagoOrdenServicioForm(forms.ModelForm):
             'notas': forms.Textarea(
                 attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Observaciones del pago'}),
         }
+
+class VehiculoInventarioForm(forms.ModelForm):
+    class Meta:
+        model = VehiculoInventario
+        fields = [
+            'marca', 'modelo', 'año', 'color', 'cilindrada',
+            'vin', 'placa', 'precio_compra', 'precio_venta',
+            'estado', 'notas'
+        ]
+        widgets = {
+            'notas': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'año': forms.NumberInput(attrs={'min': 1900, 'max': 2030, 'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Agrega la clase 'form-control' de Bootstrap a todos los campos excepto Textarea
+        for field_name, field in self.fields.items():
+            if field_name != 'notas':
+                field.widget.attrs.update({'class': 'form-control'})

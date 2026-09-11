@@ -28,6 +28,12 @@ urlpatterns = [
     path('vehiculos/nuevo/', views.crear_vehiculo, name='crear_vehiculo'),
     path('vehiculos/<int:pk>/editar/', views.editar_vehiculo, name='editar_vehiculo'),
 
+    # URLs para el Inventario de Vehículos (Motos)
+   path('inventario/', views.inventario_vehiculos_list, name='inventario_vehiculos_list'),
+   path('inventario/nuevo/', views.inventario_vehiculos_create, name='inventario_vehiculos_create'),
+   path('inventario/<int:pk>/editar/', views.inventario_vehiculos_update, name='inventario_vehiculos_update'),
+   path('inventario/<int:pk>/eliminar/', views.inventario_vehiculos_delete, name='inventario_vehiculos_delete'),
+
     # Pagos
     path('ordenes/<int:pk>/registrar-pago/', views.registrar_pago, name='registrar_pago'),
 

@@ -222,10 +222,12 @@ class OrdenServicio(models.Model):
         ordering = ['-fecha_entrada']
 
     def __str__(self):
+        if self.es_interna and self.vehiculo_inventario:
+            return f"{self.numero_os} - Interna: {self.vehiculo_inventario}"
         return f"{self.numero_os} - {self.cliente} - {self.vehiculo}"
 
     def save(self, *args, **kwargs):
-        # Generar número de OS automático si es nuevo
+        # 1. Generar número de OS automático si es nuevo
         if not self.numero_os:
             ultimo_anio = self.fecha_entrada.year if self.fecha_entrada else 2026
             ultima_os = OrdenServicio.objects.filter(
@@ -240,7 +242,22 @@ class OrdenServicio(models.Model):
 
             self.numero_os = f'OS-{ultimo_anio}-{str(nuevo_numero).zfill(4)}'
 
+        # 2. Guardar la orden primero en la base de datos
         super().save(*args, **kwargs)
+
+        # 3. Si es una orden interna, actualizar el costo acumulado en el VehiculoInventario
+        if self.es_interna and self.vehiculo_inventario:
+            from django.db.models import Sum
+
+            # Recalculamos la suma de TODAS las órdenes internas de este vehículo.
+            total_reparaciones = OrdenServicio.objects.filter(
+                es_interna=True,
+                vehiculo_inventario=self.vehiculo_inventario
+            ).aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+            # Actualizamos el campo en la moto
+            self.vehiculo_inventario.costo_reparacion_interna = total_reparaciones
+            self.vehiculo_inventario.save(update_fields=['costo_reparacion_interna'])
 
 
 class ItemOrdenServicio(models.Model):

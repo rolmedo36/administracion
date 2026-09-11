@@ -8,9 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Count, Q, F, OuterRef, Subquery
 from django.utils import timezone
-from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio, PagoOrdenServicio
+from .models import Mecanico, Vehiculo, OrdenServicio, ItemOrdenServicio, PagoOrdenServicio, VehiculoInventario
 from materiales.models import MovimientoAlmacen, DetalleMovimientoAlmacen
-from .forms import MecanicoForm, VehiculoForm, OrdenServicioForm, ItemOrdenServicioForm, PagoOrdenServicioForm
+from .forms import MecanicoForm, VehiculoForm, OrdenServicioForm, ItemOrdenServicioForm, PagoOrdenServicioForm, VehiculoInventarioForm
 from django.db import transaction
 from datetime import datetime, timedelta
 
@@ -123,14 +123,26 @@ def detalle_orden(request, pk):
 
     return render(request,'taller/detalle_orden.html', context)
 
+
 @login_required
 def crear_orden(request):
-    """Crear una nueva orden de servicio"""
+    """Crear una nueva orden de servicio (cliente o interna)"""
 
     if request.method == 'POST':
         form = OrdenServicioForm(request.POST)
         if form.is_valid():
-            orden = form.save()
+            orden = form.save(commit=False)
+
+            # Lógica para órdenes internas vs normales
+            if orden.es_interna:
+                # Si es interna, limpiar campos de cliente y vehículo de cliente
+                orden.cliente = None
+                orden.vehiculo = None
+            else:
+                # Si es normal, limpiar el vehículo de inventario
+                orden.vehiculo_inventario = None
+
+            orden.save()
             messages.success(request, f'Orden de servicio {orden.numero_os} creada exitosamente.')
             return redirect('taller:detalle_orden', pk=orden.pk)
     else:
@@ -140,10 +152,10 @@ def crear_orden(request):
         'form': form,
         'titulo': 'Nueva Orden de Servicio',
         'menu_template': 'core/menus/menu_taller.html',
-
     }
 
-    return render(request,'taller/form_orden.html', context)
+    return render(request, 'taller/form_orden.html', context)
+
 
 @login_required
 def editar_orden(request, pk):
@@ -159,7 +171,16 @@ def editar_orden(request, pk):
     if request.method == 'POST':
         form = OrdenServicioForm(request.POST, instance=orden)
         if form.is_valid():
-            orden = form.save()
+            orden = form.save(commit=False)
+
+            # Lógica para órdenes internas vs normales
+            if orden.es_interna:
+                orden.cliente = None
+                orden.vehiculo = None
+            else:
+                orden.vehiculo_inventario = None
+
+            orden.save()
             messages.success(request, f'Orden {orden.numero_os} actualizada exitosamente.')
             return redirect('taller:detalle_orden', pk=orden.pk)
     else:
@@ -170,10 +191,9 @@ def editar_orden(request, pk):
         'orden': orden,
         'titulo': f'Editar Orden {orden.numero_os}',
         'menu_template': 'core/menus/menu_taller.html',
-
     }
 
-    return render(request,'taller/form_orden.html', context)
+    return render(request, 'taller/form_orden.html', context)
 
 @login_required
 def cambiar_estado_orden(request, pk, nuevo_estado):
@@ -830,3 +850,57 @@ def imprimir_orden(request, pk):
     }
 
     return render(request, 'taller/orden_servicio_print.html', context)
+
+# Vehiculos
+
+@login_required
+def inventario_vehiculos_list(request):
+    """Lista todas las motos en el inventario"""
+    vehiculos = VehiculoInventario.objects.all()
+    context = {
+        'vehiculos': vehiculos,
+        'titulo': 'Inventario de Motos',
+        'menu_template': 'core/menus/menu_taller.html'
+    }
+    return render(request, 'taller/inventario_vehiculos_list.html', context)
+
+
+@login_required
+def inventario_vehiculos_create(request):
+    """Crea una nueva moto en el inventario"""
+    if request.method == 'POST':
+        form = VehiculoInventarioForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Moto agregada al inventario exitosamente.')
+            return redirect('taller:inventario_vehiculos_list')
+    else:
+        form = VehiculoInventarioForm()
+
+    return render(request, 'taller/inventario_vehiculos_form.html', {'form': form, 'titulo': 'Nueva Moto'})
+
+
+@login_required
+def inventario_vehiculos_update(request, pk):
+    """Edita una moto existente en el inventario"""
+    vehiculo = get_object_or_404(VehiculoInventario, pk=pk)
+    if request.method == 'POST':
+        form = VehiculoInventarioForm(request.POST, instance=vehiculo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Moto actualizada exitosamente.')
+            return redirect('taller:inventario_vehiculos_list')
+    else:
+        form = VehiculoInventarioForm(instance=vehiculo)
+
+    return render(request, 'taller/inventario_vehiculos_form.html', {'form': form, 'titulo': 'Editar Moto'})
+
+@login_required
+def inventario_vehiculos_delete(request, pk):
+    """Elimina una moto del inventario"""
+    vehiculo = get_object_or_404(VehiculoInventario, pk=pk)
+    if request.method == 'POST':
+        vehiculo.delete()
+        messages.success(request, 'Moto eliminada del inventario exitosamente.')
+        return redirect('taller:inventario_vehiculos_list')
+    return render(request, 'taller/inventario_vehiculos_confirm_delete.html', {'vehiculo': vehiculo})
