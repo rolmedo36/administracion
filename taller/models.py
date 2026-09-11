@@ -158,8 +158,20 @@ class OrdenServicio(models.Model):
     numero_os = models.CharField(max_length=20, unique=True, editable=False)
 
     # Relaciones principales
-    cliente = models.ForeignKey('clientes.Cliente', on_delete=models.CASCADE, related_name='ordenes_servicio')
-    vehiculo = models.ForeignKey('taller.Vehiculo', on_delete=models.CASCADE, related_name='ordenes_servicio')
+    # Tipo de orden (Normal para clientes, Interna para motos del inventario)
+    es_interna = models.BooleanField(default=False, help_text="¿Es una reparación para moto de nuestro inventario?")
+
+    # Relaciones principales (Opcionales si es interna)
+    cliente = models.ForeignKey('clientes.Cliente', on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='ordenes_servicio')
+    vehiculo = models.ForeignKey('taller.Vehiculo', on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name='ordenes_servicio')
+
+    # Relación para órdenes internas (Moto del inventario)
+    vehiculo_inventario = models.ForeignKey('taller.VehiculoInventario', on_delete=models.SET_NULL,
+                                            null=True, blank=True, related_name='ordenes_reparacion',
+                                            help_text="Moto del inventario en reparación interna")
+
     mecanico_responsable = models.ForeignKey('taller.Mecanico', on_delete=models.SET_NULL,
                                              null=True, blank=True, related_name='ordenes_asignadas')
 
@@ -328,3 +340,69 @@ class PagoOrdenServicio(models.Model):
 
     def __str__(self):
         return f"Pago de ${self.monto} - Orden {self.orden_servicio.numero_os}"
+
+
+class VehiculoInventario(models.Model):
+    """Modelo para gestionar el inventario de motos del taller (para venta)"""
+
+    # Estados del vehículo en inventario
+    ESTADO_NUEVO = 'NUEVO'
+    ESTADO_SEMINUEVO = 'SEMINUEVO'
+    ESTADO_EN_EXHIBICION = 'EXHIBICION'
+    ESTADO_VENDIDO = 'VENDIDO'
+    ESTADO_RESERVADO = 'RESERVADO'
+
+    ESTADOS_INVENTARIO = [
+        (ESTADO_NUEVO, ' Nuevo'),
+        (ESTADO_SEMINUEVO, '♻️ Seminuevo'),
+        (ESTADO_EN_EXHIBICION, '🏪 En Exhibición'),
+        (ESTADO_VENDIDO, '✅ Vendido'),
+        (ESTADO_RESERVADO, '🔒 Reservado'),
+    ]
+
+    # Información básica
+    marca = models.CharField(max_length=50)
+    modelo = models.CharField(max_length=50)
+    año = models.PositiveIntegerField()
+    color = models.CharField(max_length=30)
+    cilindrada = models.PositiveIntegerField(help_text="Cilindrada en CC")
+
+    # Identificación
+    vin = models.CharField(max_length=17, unique=True, verbose_name="Número de Serie (VIN)",
+                           help_text="Número de identificación vehicular")
+    placa = models.CharField(max_length=20, blank=True, null=True)
+
+    # Precios
+    precio_compra = models.DecimalField(max_digits=10, decimal_places=2,
+                                        verbose_name="Precio de Compra")
+    precio_venta = models.DecimalField(max_digits=10, decimal_places=2,
+                                       verbose_name="Precio de Venta")
+
+    # Estado y fechas
+    estado = models.CharField(max_length=20, choices=ESTADOS_INVENTARIO, default=ESTADO_EN_EXHIBICION)
+    fecha_ingreso = models.DateField(auto_now_add=True)
+    fecha_venta = models.DateField(null=True, blank=True)
+
+    # Costos reales (para calcular margen de ganancia real)
+    costo_reparacion_interna = models.DecimalField(max_digits=10, decimal_places=2, default=0,
+                                                   help_text="Suma de refacciones y mano de obra usada para repararla")
+
+    @property
+    def costo_total_real(self):
+        """Costo final de la moto (Compra + Reparaciones)"""
+        return self.precio_compra + self.costo_reparacion_interna
+
+    # Notas
+    notas = models.TextField(blank=True, null=True)
+
+    # Timestamps
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Moto en Inventario"
+        verbose_name_plural = "Motos en Inventario"
+        ordering = ['-fecha_ingreso']
+
+    def __str__(self):
+        return f"{self.marca} {self.modelo} {self.año} - {self.get_estado_display()}"
